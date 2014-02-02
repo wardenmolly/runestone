@@ -43,7 +43,7 @@ def update():
 	db.assignments.grade_type.widget = SQLFORM.widgets.radio.widget
 	form = SQLFORM(db.assignments, assignment,
 	    showid = False,
-	    fields=['name','points','query','grade_type','threshold'],
+	    fields=['name','points','grade_type','threshold'],
 	    keepvalues = True,
 	    formstyle='table3cols',
 	    )
