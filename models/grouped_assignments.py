@@ -36,10 +36,26 @@ def assignment_set_grade(assignment, user):
 	return points
 db.assignments.grade = Field.Method(lambda row, user: assignment_set_grade(row.assignments, user))
 
+db.define_table('problems',
+	Field('assignment',db.assignments),
+	Field('acid','string'),
+	migrate='runestones_problems.table',
+	)
+
+db.define_table('scores',
+	Field('problem',db.problems),
+	Field('auth_user',db.auth_user),
+	Field('score','double'),
+	Field('comment','string'),
+	Field('released','boolean'),
+	migrate='runestone_scores.table',
+	)
+
 db.define_table('grades',
 	Field('auth_user', db.auth_user),
 	Field('assignment', db.assignments),
 	Field('score', 'double'),
+	Field('released','boolean'),
 	migrate='runestone_grades.table',
 	)
 
