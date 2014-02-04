@@ -14,6 +14,7 @@
    :prefix: func-
    :start: 1
    
+.. _functions_chap:
 
 Functions
 =========
@@ -478,7 +479,8 @@ black-box diagram with the Python code following.
 
     toSquare = 10
     result = square(toSquare)
-    print("The result of",toSquare,"squared is",result)
+    print("The result of " + str(toSquare) + " squared is " + str(result))
+
 
 The **return** statement is followed by an expression which is evaluated.  Its
 result is returned to the caller as the "fruit" of calling this function.
@@ -507,7 +509,6 @@ function are in separate boxes.
 
     toSquare = 10
     squareResult = square(toSquare)
-    print("The result of ", toSquare, " squared is ", squareResult)
 
 
 There is one more aspect of function return values that should be noted.  
@@ -527,7 +528,7 @@ function returns.
 
     toSquare = 10
     squareResult = square(toSquare)
-    print("The result of ", toSquare, " squared is ", squareResult)
+    print("The result of " + str(toSquare) + " squared is " + str(squareResult))
 
 The problem with this function is that even though it prints the value of the square, 
 that value will not be returned to the place
@@ -536,6 +537,23 @@ side of an assignment statement, the evaluation of the
 function will be ``None``.  In this case, ``squareResult`` will refer to that 
 value after the assignment statement and therefore the result printed in line 7 is incorrect.  
 Typically, functions will return values that can be printed or processed in some other way by the caller.
+
+A return statement, once executed, immediately terminates execution of a function, even if it is not the
+last statement in the function. In the following code, when line 3 executes, the
+value 5 is returned and assigned to the variable x, then printed. Lines 4 and 5 
+never execute. Run the following code and try making some modifications of
+it to make sure you understand why "there" and 10 never print out.
+
+.. activecode:: functions_5a
+
+   def weird():
+      print("here")
+      return(5)
+      print("there")
+      return(10)
+      
+   x= weird()
+   print(x)
 
 So far, we have just seen return values being assigned to variables. For example, 
 we had the line ``squareResult = square(toSquare)``. As with all assignment statements,
@@ -563,8 +581,28 @@ interpreter does these steps:
 
 **Check your understanding**
 
+.. mchoicemf:: test_questionfunctions_2_1
+   :answer_a: You should never use a print statement in a function definition.
+   :answer_b: You should not have any statements in a function after the return statement.  Once the function gets to the return statement it will immediately stop executing the function.
+   :answer_c: You must calculate the value of x+y+z before you return it.
+   :answer_d: A function cannot return a number.
+   :correct: b
+   :feedback_a: Although you should not mistake print for return, you may include print statements inside your functions.
+   :feedback_b: This is a very common mistake so be sure to watch out for it when you write your code!
+   :feedback_c: Python will automatically calculate the value x+y+z and then return it in the statement as it is written
+   :feedback_d: Functions can return any legal data, including (but not limited to) numbers, strings, lists, dictionaries, etc.
+
+   What is wrong with the following function definition:
+
+   .. code-block:: python
+
+     def addEm(x, y, z):
+         return x+y+z
+         print('the answer is', x+y+z)
+
+
 .. mchoicemf:: test_questionfunctions_2_2
-   :answer_a: Nothing (no value)
+   :answer_a: The value None
    :answer_b: The value of x+y+z
    :answer_c: The string 'x+y+z'
    :correct: a
@@ -617,6 +655,58 @@ interpreter does these steps:
            return y
            
        print(square(square(2)))
+
+.. mchoicemf:: test_questionfunctions_2_5
+   :answer_a: 1
+   :answer_b: Yes
+   :answer_c: First one was longer
+   :answer_d: Second one was at least as long
+   :answer_e: Error
+   :correct: c
+   :feedback_a: cyu2 returns the value 1, but that's not what prints.
+   :feedback_b: "Yes" is longer, but that's not what prints.
+   :feedback_c: cyu2 returns the value 1, which is assigned to z.
+   :feedback_d: cyu2 returns the value 1, which is assigned to z.
+   :feedback_e: what do you think will cause an error.
+   
+   What will the following code output?
+   
+   .. code-block:: python 
+
+       def cyu2(s1, s2):
+           x = len(s1)
+           y = len(s2)
+           return x-y
+           
+       z = cyu2("Yes", "no")
+       if z > 0:
+           print("First one was longer")
+       else:
+           print("Second one was at least as long")
+ 
+.. mchoicemf:: test_questionfunctions_2_6
+   :answer_a: square
+   :answer_b: g
+   :answer_c: a number
+   :correct: b
+   :feedback_a: Before executing square, it has to figure out what value to pass in, so g is executed first
+   :feedback_b: g has to be executed and return a value in order to know what paramater value to provide to x.
+   :feedback_c: square and g both have to execute before the number is printed.   
+   
+   Which will print out first, square, g, or a number?
+   
+   .. code-block:: python 
+
+       def square(x):
+           print("square")
+           return x*x
+           
+       def g(y):
+           print("g")
+           return y + 3
+           
+       print(square(g(2)))
+
 
 A function that accumulates
 ---------------------------
@@ -686,7 +776,8 @@ Glossary
 
             keyword expression:
                 statement
-                statement ...
+                statement 
+                ...
 
     docstring
         If the first thing in a function body is a string (or, we'll see later, in other situations
