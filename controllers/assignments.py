@@ -117,10 +117,8 @@ def grade():
 # Student version of index
 def index():
 	if 'sid' not in request.vars:
-		print 'sid redirect'
 		return redirect(URL('assignments','index') + '?sid=%d' % (auth.user.id))
 	if str(auth.user.id) != request.vars.sid and not verifyInstructorStatus(auth.user.course_name, auth.user):
-		print 'something'
 		return redirect(URL('assignments','index'))
 	student = db(db.auth_user.id == request.vars.sid).select(
 		db.auth_user.id,
