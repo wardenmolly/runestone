@@ -165,6 +165,18 @@ def update():
 			_value="Remove Problems",
 			_class="btn btn-default"
 			))
+	if problems_delete_form.accepts(request, session, formname="problems_delete_form"):
+		count = 0
+		for var in problems_delete_form.vars:
+			if problems_delete_form.vars[var] == "delete":
+				db(db.problems.id == var).delete()
+				count += 1
+		if count > 0:
+			session.flash = "Removed %d Problems" % (count)
+		else:
+			session.flash = "Didn't remove any problems"
+		return redirect(URL('assignments','update')+'?id=%d' % (assignment.id))
+
 
 	problem_query_form = FORM(
 		_method="get",
