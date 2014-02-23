@@ -146,11 +146,36 @@ def update():
 		session.flash = 'Deleted deadline(s)'
 		return redirect(URL('assignments','update')+'?id=%d' % (assignment.id))
 
-	problems = db(db.problems.assignment == assignment.id).select()
-	problem_query_form = FORM(
+	problems_delete_form = FORM(
 		_method="post",
 		_action=URL('assignments','update')+'?id=%d' % (assignment.id)
 		)
+	for problem in db(db.problems.assignment == assignment.id).select():
+		problems_delete_form.append(
+		DIV(
+			LABEL(
+			INPUT(_type="checkbox", _name=problem.id, _value="delete"),
+			problem.acid,
+			),
+			_class="checkbox"
+		))
+	problems_delete_form.append(
+		INPUT(
+			_type="submit",
+			_value="Remove Problems",
+			_class="btn btn-default"
+			))
+
+	problem_query_form = FORM(
+		_method="get",
+		_action=URL('assignments','update')
+		)
+	problem_query_form.append(
+		INPUT(
+			_type="hidden",
+			_name="id",
+			_value=assignment.id,
+			))
 	problem_query_form.append(
 		INPUT(
 			_type="text",
@@ -162,12 +187,46 @@ def update():
 			_value="Search"
 			))
 	problem_results = None
-	if problem_query_form.accepts(request,session,formname="problem_query_form"):
-		problem_results = db(db.code.acid.like(problem_query_form.vars['query_string']+"%")).select(
+	problem_query_string=""
+	if 'query_string' in request.get_vars:
+		problem_query_string = request.get_vars['query_string']
+		problem_results = db(db.code.acid.like(request.get_vars['query_string']+"%")).select(
 		db.code.ALL,
 		orderby=db.code.acid,
 		distinct=db.code.acid,
 		)
+
+	problem_results_form = FORM(
+		_method="post",
+		_action=URL('assignments','update')+'?id=%d&query_string=%s' % (assignment.id,problem_query_string),
+		)
+	if problem_results:
+		for problem in problem_results:
+			problem_results_form.append(LABEL(
+				INPUT(_type="checkbox", _name=problem.acid, _value="add"),
+				problem.acid,
+				_class="checkbox",
+				))
+	problem_results_form.append(
+		INPUT(
+			_type="submit",
+			_value="Add Problems",
+			))
+	if problem_results_form.accepts(request,session,formname="problem_results_form"):
+		count = 0
+		for var in problem_results_form.vars:
+			print "counint var "+var
+			if problem_results_form.vars[var] == 'add':
+				count += 1
+				db.problems.insert(
+					assignment = assignment.id,
+					acid = var,
+					)
+		if count > 0:
+			session.flash = "Added %d problems" % (count)
+		else:
+			session.flash = "Didn't add any problems."
+		return redirect(URL('assignments','update')+'?id=%d' % (assignment.id))
 
 	return dict(
 		assignment = assignment,
@@ -176,7 +235,8 @@ def update():
 		delete_deadline_form = delete_deadline_form,
 		problem_query_form = problem_query_form,
 		problem_results = problem_results,
-		problems = problems,
+		problem_results_form = problem_results_form,
+		problems_delete_form = problems_delete_form,
 		)
 
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
