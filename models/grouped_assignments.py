@@ -8,15 +8,21 @@ db.define_table('assignments',
 	migrate='runestone_assignments.table'
 	)
 
-def assignment_get_problems(assignment, user):
-	if 'query' not in assignment or not assignment.query:
-		return []
-	return db(db.code.acid.like(assignment.query+"%"))(db.code.sid==user.username).select(
-		db.code.ALL,
-		orderby=db.code.acid|db.code.timestamp,
-		distinct=db.code.acid,
+def assignment_get_problems(assignment, user=None):
+	if user:
+		q = db(db.problems.acid == db.code.acid)
+		q = q(db.problems.assignment == assignment.id)
+		q = q(db.code.sid == user.username)
+		return q.select(
+			db.code.ALL,
+			orderby=db.code.acid,
+			distinct=db.code.acid,
+			)
+	return db(db.problems.assignment == assignment.id).select(
+		db.problems.ALL,
+		orderby=db.problems.acid
 		)
-db.assignments.problems = Field.Method(lambda row, user: assignment_get_problems(row.assignments, user))
+db.assignments.problems = Field.Method(lambda row, user=None: assignment_get_problems(row.assignments, user))
 def assignment_set_grade(assignment, user):
 	# delete the old grades; we're regrading
 	db(db.grades.assignment == assignment.id)(db.grades.auth_user == user.id).delete()

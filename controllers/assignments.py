@@ -289,16 +289,7 @@ def detail():
 	if 'sid' in request.vars:
 		student_id = request.vars.sid
 		student = db(db.auth_user.id == student_id).select().first()
-		problems = assignment.problems(student)
-	else:
-	    q = db(db.code.course_id == auth.user.course_id)
-	    q = q(db.code.acid.like(assignment.query+"%"))
-	    problems = q.select(
-	    	db.code.acid,
-	    	db.code.course_id,
-	    	orderby = db.code.acid,
-	    	distinct = db.code.acid,
-	    	)
+	problems = assignment.problems(student)
 
 	# Used as a convinence function for navigating within the page template
 	def page_args(id=assignment.id, section_id=selected_section, student=student, acid=acid):
