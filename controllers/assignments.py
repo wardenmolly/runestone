@@ -103,6 +103,8 @@ def update():
 		return redirect(URL('assignments','update')+'?id=%d' % (form.vars.id))
 	elif form.errors:
 		response.flash = 'form has errors'
+
+
 	new_deadline_form = SQLFORM(db.deadlines,
 		showid = False,
 		fields=['section','deadline'],
@@ -137,18 +139,44 @@ def update():
 			_class="btn btn-default"
 			))
 
-	if delete_deadline_form.accepts(request,session):
+	if delete_deadline_form.accepts(request,session, formname="delete_deadline_form"):
 		for var in delete_deadline_form.vars:
 			if delete_deadline_form.vars[var] == "delete":
 				db(db.deadlines.id == var).delete()
 		session.flash = 'Deleted deadline(s)'
 		return redirect(URL('assignments','update')+'?id=%d' % (assignment.id))
 
+	problems = db(db.problems.assignment == assignment.id).select()
+	problem_query_form = FORM(
+		_method="post",
+		_action=URL('assignments','update')+'?id=%d' % (assignment.id)
+		)
+	problem_query_form.append(
+		INPUT(
+			_type="text",
+			_name="query_string"
+			))
+	problem_query_form.append(
+		INPUT(
+			_type="submit",
+			_value="Search"
+			))
+	problem_results = None
+	if problem_query_form.accepts(request,session,formname="problem_query_form"):
+		problem_results = db(db.code.acid.like(problem_query_form.vars['query_string']+"%")).select(
+		db.code.ALL,
+		orderby=db.code.acid,
+		distinct=db.code.acid,
+		)
+
 	return dict(
 		assignment = assignment,
 		form = form,
 		new_deadline_form = new_deadline_form,
 		delete_deadline_form = delete_deadline_form,
+		problem_query_form = problem_query_form,
+		problem_results = problem_results,
+		problems = problems,
 		)
 
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
