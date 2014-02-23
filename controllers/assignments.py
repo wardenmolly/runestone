@@ -150,7 +150,10 @@ def update():
 		_method="post",
 		_action=URL('assignments','update')+'?id=%d' % (assignment.id)
 		)
-	for problem in db(db.problems.assignment == assignment.id).select():
+	for problem in db(db.problems.assignment == assignment.id).select(
+		db.problems.id,
+		db.problems.acid,
+		orderby=db.problems.acid):
 		problems_delete_form.append(
 		DIV(
 			LABEL(
