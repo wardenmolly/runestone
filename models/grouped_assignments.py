@@ -76,6 +76,7 @@ def assignment_get_grades(assignment, section_id=None, problem=None):
 	return users
 def assignment_get_problem_grades(problem, section_id=None):
 	code = db(db.code.sid == db.auth_user.username)
+	code = code(db.problems.acid == db.code.acid)
 	if section_id:
 		code = code((db.sections.id==db.section_users.section) & (db.auth_user.id==db.section_users.auth_user))
 		code = code(db.sections.id == section_id)
@@ -83,14 +84,20 @@ def assignment_get_problem_grades(problem, section_id=None):
 	code = code.select(
 		db.code.ALL,
 		db.auth_user.ALL,
+		db.scores.ALL,
+		left = db.scores.on(db.scores.problem == db.problems.id),
 		orderby = db.code.sid|db.auth_user.last_name,
 		distinct = db.code.sid,
 		)
 	users = []
 	for c in code:
 		u = c.auth_user
-		u.grade = c.code.grade
-		u.comment = c.code.comment
+		if c.scores.score != None:
+			u.grade = c.scores.score
+			u.comment = c.scores.comment
+		else:
+			u.grade = c.code.grade
+			u.comment = c.code.comment
 		users.append(u)
 	return users
 db.assignments.grades_get = Field.Method(lambda row, section=None, problem=None: assignment_get_grades(row.assignments, section, problem))
