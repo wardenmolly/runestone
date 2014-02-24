@@ -320,29 +320,42 @@ import json
 def problem():
 	if 'acid' not in request.vars or 'sid' not in request.vars:
 		return json.dumps({'success':False})
+
+	# maybe not in this order?
+	if 'grade' in request.vars and 'comment' in request.vars:
+		grade = float(request.vars.grade)
+		comment = request.vars.comment
+		db.scores.update_or_insert(
+			((db.scores.acid == request.vars.acid) & (db.scores.auth_user == int(request.vars.sid))),
+			acid = request.vars.acid,
+			auth_user = int(request.vars.sid),
+			score = grade,
+			comment = comment,
+			)
 	q = db(db.code.sid == db.auth_user.username)
 	q = q(db.code.acid == request.vars.acid)
 	q = q(db.auth_user.id == request.vars.sid)
 	q = q.select(
 		db.auth_user.ALL,
 		db.code.ALL,
+		db.scores.ALL,
+		left = db.scores.on(db.scores.acid == db.code.acid),
 		orderby = db.code.acid|db.code.timestamp,
 		distinct = db.code.acid,
 		).first()
 	if not q:
 		return json.dumps({'success':False})
-	if 'grade' in request.vars:
-		q.code.grade = float(request.vars.grade)
-	if 'comment' in request.vars:
-		q.code.comment = request.vars.comment
-	if 'grade' in request.vars or 'comment' in request.vars:
-		q.code.update_record()
-	return json.dumps({
+	res = {
 		'id':"%s-%d" % (q.code.acid, q.auth_user.id),
 		'acid':q.code.acid,
-		'sid':q.auth_user.username,
+		'sid':int(q.auth_user.id),
 		'name':"%s %s" % (q.auth_user.first_name, q.auth_user.last_name),
 		'code':q.code.code,
-		'grade':q.code.grade,
-		'comment':q.code.comment,
-		})
+		'grade':q.scores.score,
+		'comment':q.scores.comment,
+		}
+	if res['comment'] == None:
+		res['comment'] = ""
+	if res['grade'] == None:
+		res['grade'] = ""
+	return json.dumps(res)

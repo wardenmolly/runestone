@@ -85,7 +85,7 @@ def assignment_get_problem_grades(problem, section_id=None):
 		db.code.ALL,
 		db.auth_user.ALL,
 		db.scores.ALL,
-		left = db.scores.on(db.scores.acid == db.code.acid),
+		left = db.scores.on(db.scores.acid == db.code.acid), # PROBLEM - does not filter by user, just grabs last thingy
 		orderby = db.code.sid|db.auth_user.last_name,
 		distinct = db.code.sid,
 		)
