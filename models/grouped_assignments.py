@@ -85,7 +85,7 @@ def assignment_get_problem_grades(problem, section_id=None):
 		db.code.ALL,
 		db.auth_user.ALL,
 		db.scores.ALL,
-		left = db.scores.on(db.scores.problem == db.problems.id),
+		left = db.scores.on(db.scores.acid == db.code.acid),
 		orderby = db.code.sid|db.auth_user.last_name,
 		distinct = db.code.sid,
 		)
@@ -109,7 +109,7 @@ db.define_table('problems',
 	)
 
 db.define_table('scores',
-	Field('problem',db.problems),
+	Field('acid','string'),
 	Field('auth_user',db.auth_user),
 	Field('score','double'),
 	Field('comment','string'),
