@@ -377,11 +377,13 @@ def migrate_to_scores():
 				'score':row.grade,
 				'comment':row.comment,
 				}
-
+	acid_count = 0
+	user_count = 0
 	for sid in accumulated_scores:
 		user = db(db.auth_user.username == sid).select().first()
 		if not user:
 			continue
+		user_count += 1
 		for acid in accumulated_scores[sid]:
 			db.scores.update_or_insert(
 				((db.scores.acid == acid) & (db.scores.auth_user == user.id)),
@@ -390,6 +392,7 @@ def migrate_to_scores():
 				score = accumulated_scores[sid][acid]['score'],
 				comment = accumulated_scores[sid][acid]['comment'],
 				)
-
+			acid_count += 1
+	session.flash = "Set %d scores for %d users" % (acid_count, user_count)
 	return redirect(URL("assignments","index"))
 
