@@ -363,8 +363,33 @@ def problem():
 def migrate_to_scores():
 	""" Temp command to migrate db.code grades to db.score table """
 
-	# for each row in db.code that has a unique user & acid
-	# if that row has a grade -> create a score entry
+	accumulated_scores = {}
+	code_rows = db(db.code.grade != None).select(
+		db.code.ALL,
+		orderby = db.code.acid|db.code.timestamp,
+		distinct = db.code.acid,
+		)
+	for row in code_rows:
+		if row.sid not in accumulated_scores:
+			accumulated_scores[row.sid] = {}
+		if row.acid not in accumulated_scores[row.sid]:
+			accumulated_scores[row.sid][row.acid] = {
+				'score':row.grade,
+				'comment':row.comment,
+				}
+
+	for sid in accumulated_scores:
+		user = db(db.auth_user.username == sid).select().first()
+		if not user:
+			continue
+		for acid in accumulated_scores[sid]:
+			db.scores.update_or_insert(
+				((db.scores.acid == acid) & (db.scores.auth_user == user.id)),
+				acid = acid,
+				auth_user = user.id,
+				score = accumulated_scores[sid][acid]['score'],
+				comment = accumulated_scores[sid][acid]['comment'],
+				)
 
 	return redirect(URL("assignments","index"))
 
