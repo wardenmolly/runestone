@@ -359,3 +359,12 @@ def problem():
 	if res['grade'] == None:
 		res['grade'] = ""
 	return json.dumps(res)
+
+def migrate_to_scores():
+	""" Temp command to migrate db.code grades to db.score table """
+
+	# for each row in db.code that has a unique user & acid
+	# if that row has a grade -> create a score entry
+
+	return redirect(URL("assignments","index"))
+
