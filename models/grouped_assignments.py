@@ -52,9 +52,6 @@ def assignment_set_grade(assignment, user):
 db.assignments.grade = Field.Method(lambda row, user: assignment_set_grade(row.assignments, user))
 def assignment_get_grades(assignment, section_id=None, problem=None):
 	""" Return a list of users with grades for assignment (or problem) """
-	if problem:
-		return assignment_get_problem_grades(problem, section_id)
-
 	if section_id:
 		section_users = db((db.sections.id==db.section_users.section) & (db.auth_user.id==db.section_users.auth_user))
 		users = section_users(db.auth_user.course_id == assignment.course)
@@ -65,40 +62,16 @@ def assignment_get_grades(assignment, section_id=None, problem=None):
 		db.auth_user.ALL,
 		orderby = db.auth_user.last_name,
 		)
-	grades = db(db.grades.assignment == assignment.id)
-	grades = grades.select(db.grades.ALL)
+	if problem:
+		grades = db(db.scores.acid == problem).select(db.scores.ALL)
+	else:
+		grades = db(db.grades.assignment == assignment.id).select(db.grades.ALL)
 	for u in users:
 		u.grade = None
 		u.comment = ""
 		for g in grades:
 			if g.auth_user.id == u.id:
 				u.grade = g.score
-	return users
-def assignment_get_problem_grades(problem, section_id=None):
-	code = db(db.code.sid == db.auth_user.username)
-	code = code(db.problems.acid == db.code.acid)
-	if section_id:
-		code = code((db.sections.id==db.section_users.section) & (db.auth_user.id==db.section_users.auth_user))
-		code = code(db.sections.id == section_id)
-	code = code(db.code.acid == problem)
-	code = code.select(
-		db.code.ALL,
-		db.auth_user.ALL,
-		db.scores.ALL,
-		left = db.scores.on(db.scores.acid == db.code.acid), # PROBLEM - does not filter by user, just grabs last thingy
-		orderby = db.code.sid|db.auth_user.last_name,
-		distinct = db.code.sid,
-		)
-	users = []
-	for c in code:
-		u = c.auth_user
-		if c.scores.score != None:
-			u.grade = c.scores.score
-			u.comment = c.scores.comment
-		else:
-			u.grade = c.code.grade
-			u.comment = c.code.comment
-		users.append(u)
 	return users
 db.assignments.grades_get = Field.Method(lambda row, section=None, problem=None: assignment_get_grades(row.assignments, section, problem))
 
