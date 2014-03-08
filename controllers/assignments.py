@@ -334,12 +334,10 @@ def problem():
 			)
 	q = db(db.code.sid == db.auth_user.username)
 	q = q(db.code.acid == request.vars.acid)
-	q = q(db.auth_user.id == request.vars.sid)
+	q = q(db.auth_user.id == int(request.vars.sid))
 	q = q.select(
 		db.auth_user.ALL,
 		db.code.ALL,
-		db.scores.ALL,
-		left = db.scores.on(db.scores.acid == db.code.acid),
 		orderby = db.code.acid|db.code.timestamp,
 		distinct = db.code.acid,
 		).first()
@@ -351,13 +349,13 @@ def problem():
 		'sid':int(q.auth_user.id),
 		'name':"%s %s" % (q.auth_user.first_name, q.auth_user.last_name),
 		'code':q.code.code,
-		'grade':q.scores.score,
-		'comment':q.scores.comment,
+		'grade':None,
+		'comment':None,
 		}
-	if res['comment'] == None:
-		res['comment'] = ""
-	if res['grade'] == None:
-		res['grade'] = ""
+	score = db(db.scores.acid == request.vars.acid)(db.scores.auth_user == int(request.vars.sid)).select(db.scores.ALL).first()
+	if score:
+		res['grade'] = score.score
+		res['comment'] = score.comment
 	return json.dumps(res)
 
 def migrate_to_scores():
