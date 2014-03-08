@@ -347,6 +347,7 @@ def problem():
 		'id':"%s-%d" % (q.code.acid, q.auth_user.id),
 		'acid':q.code.acid,
 		'sid':int(q.auth_user.id),
+		'username':q.auth_user.username,
 		'name':"%s %s" % (q.auth_user.first_name, q.auth_user.last_name),
 		'code':q.code.code,
 		'grade':None,
