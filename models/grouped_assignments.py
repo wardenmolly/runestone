@@ -30,9 +30,9 @@ def assignment_set_grade(assignment, user):
 	
 	points = 0.0
 	for prob in assignment.problems(user):
-		if not prob.grade:
+		if not prob.score:
 			continue
-		points = points + prob.grade
+		points = points + prob.score
 
 	if assignment.grade_type == 'checkmark':
 		#threshold grade
