@@ -9,6 +9,7 @@ Assignments
 .. toctree::
    :maxdepth: 2
 
+   Assignments/week8.rst
    Assignments/week7.rst
    Assignments/week6.rst
    Assignments/week5.rst
@@ -104,6 +105,7 @@ Functions
    Functions/functions.rst
    Functions/functions2.rst
    Functions/optionalParams.rst
+   Functions/KeywordParams.rst
    
 Tuples
 ::::::
@@ -161,6 +163,15 @@ Installation
    :maxdepth: 2
    
    Installation/installation.rst
+
+String Formatting
+:::::::::::::::::
+
+.. toctree::
+   :maxdepth: 2
+   
+   StringFormatting/interpolation.rst
+
 
 .. ignore these for now
     Recursion
