@@ -95,6 +95,15 @@ def problems_get_scores(problem, section_id=None):
 		users.append(user)
 	return users
 db.assignments.grades_get = Field.Method(lambda row, section=None, problem=None: assignment_get_grades(row.assignments, section, problem))
+def assignment_release_grades(assignment, released=True):
+	# update problems
+	db(db.grades.assignment == assignment.id).update(released=released)
+	# update scores
+	problems = db(db.problems.assignment == assignment.id).select()
+	for problem in problems:
+		db(db.scores.acid == problem.acid).update(released = released)
+	return True
+db.assignments.release_grades = Field.Method(lambda row, released=True: assignment_release_grades(row.assignments, released))
 
 db.define_table('problems',
 	Field('assignment',db.assignments),

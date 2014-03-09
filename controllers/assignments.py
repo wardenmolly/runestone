@@ -269,6 +269,17 @@ def grade():
 	return redirect("%s?id=%d" % (URL('assignments','detail'), assignment.id))
 
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
+def release_grades():
+	course = db(db.courses.id == auth.user.course_id).select().first()
+	assignment = db(db.assignments.id == request.get_vars.id).select().first()
+
+	if assignment.release_grades():
+		session.flash = "Grades Relased"
+	if request.env.HTTP_REFERER:
+		return redirect(request.env.HTTP_REFERER)
+	return redirect("%s?id=%d" % (URL('assignments','detail'), assignment.id))
+
+@auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
 def detail():
 	course = db(db.courses.id == auth.user.course_id).select().first()
 	assignment = db(db.assignments.id == request.vars.id)(db.assignments.course == course.id).select().first()
