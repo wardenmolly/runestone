@@ -500,28 +500,29 @@ def getassignmentgrade():
 
     result = db(
         (db.scores.auth_user == auth.user.id) &
-        (db.scores.acid == divid)
+        (db.scores.acid == divid) &
+        (db.scores.released == True)
         ).select(
             db.scores.score,
             db.scores.comment,
         ).first()
 
-    ret = {}
+    ret = {
+        'grade':"Not graded yet",
+        'comment': "No Comments",
+        'avg': 'None',
+        'count': 'None',
+    }
     if result:
         ret['grade'] = result.score
         if result.comment:
             ret['comment'] = result.comment
-        else:
-            ret['comment'] = "No Comments"
-    else:
-        ret['grade'] = "not graded yet"
-        ret['comment'] = "No Comments"
 
-    query = '''select avg(score), count(score)
-               from scores where acid='%s';''' % (divid)
+        query = '''select avg(score), count(score)
+                   from scores where acid='%s';''' % (divid)
 
-    rows = db.executesql(query)
-    ret['avg'] = rows[0][0]
-    ret['count'] = rows[0][1]
+        rows = db.executesql(query)
+        ret['avg'] = rows[0][0]
+        ret['count'] = rows[0][1]
 
     return json.dumps([ret])
