@@ -492,25 +492,23 @@ def getSphinxBuildStatus():
         return dict(status=status, traceback=tb)
 
 def getassignmentgrade():
-   #  print 'in getassignmentgrade'
-    if auth.user:
-        sid = auth.user.username
-    else:
+    response.headers['content-type'] = 'application/json'
+    if not auth.user:
         return json.dumps([dict(message="not logged in")])
 
-    response.headers['content-type'] = 'application/json'
-
     divid = request.vars.div_id
-    course_id = auth.user.course_id
-    "select grade, comment from code where sid='%s' and acid='%s' and grade is not null order by timestamp desc"
-    result = db((db.code.sid == sid) &
-                 (db.code.acid == divid) &
-                 (db.code.course_id == course_id) &
-                 (db.code.grade != None)).select(db.code.grade, db.code.comment, orderby= ~db.code.timestamp).first()
+
+    result = db(
+        (db.scores.auth_user == auth.user.id) &
+        (db.scores.acid == divid)
+        ).select(
+            db.scores.score,
+            db.scores.comment,
+        ).first()
 
     ret = {}
     if result:
-        ret['grade'] = result.grade
+        ret['grade'] = result.score
         if result.comment:
             ret['comment'] = result.comment
         else:
@@ -519,8 +517,8 @@ def getassignmentgrade():
         ret['grade'] = "not graded yet"
         ret['comment'] = "No Comments"
 
-    query = '''select avg(grade), count(grade)
-               from code where sid='%s' and course_id='%d' and grade is not null;''' % (sid, course_id)
+    query = '''select avg(score), count(score)
+               from scores where acid='%s';''' % (divid)
 
     rows = db.executesql(query)
     ret['avg'] = rows[0][0]
