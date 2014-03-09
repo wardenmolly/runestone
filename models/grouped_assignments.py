@@ -9,10 +9,6 @@ db.define_table('assignments',
 	)
 
 def assignment_get_problems(assignment, user=None):
-	problems = db(db.problems.assignment == assignment.id).select(
-		db.problems.ALL,
-		orderby=db.problems.acid
-		)
 	if user:
 		q = db(db.problems.acid == db.scores.acid)
 		q = q(db.problems.assignment == assignment.id)
@@ -21,13 +17,11 @@ def assignment_get_problems(assignment, user=None):
 			db.scores.ALL,
 			orderby=db.scores.acid,
 			)
-		for p in problems:
-			p.score = None
-			p.comment = ""
-			for s in scores:
-				if p.acid == s.acid:
-					p.score = s.score
-					p.comment = s.comment
+		return scores
+	problems = db(db.problems.assignment == assignment.id).select(
+		db.problems.ALL,
+		orderby=db.problems.acid
+		)
 	return problems
 db.assignments.problems = Field.Method(lambda row, user=None: assignment_get_problems(row.assignments, user))
 def assignment_set_grade(assignment, user):
