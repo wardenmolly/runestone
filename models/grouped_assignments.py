@@ -9,19 +9,26 @@ db.define_table('assignments',
 	)
 
 def assignment_get_problems(assignment, user=None):
-	if user:
-		q = db(db.problems.acid == db.code.acid)
-		q = q(db.problems.assignment == assignment.id)
-		q = q(db.code.sid == user.username)
-		return q.select(
-			db.code.ALL,
-			orderby=db.code.acid,
-			distinct=db.code.acid,
-			)
-	return db(db.problems.assignment == assignment.id).select(
+	problems = db(db.problems.assignment == assignment.id).select(
 		db.problems.ALL,
 		orderby=db.problems.acid
 		)
+	if user:
+		q = db(db.problems.acid == db.scores.acid)
+		q = q(db.problems.assignment == assignment.id)
+		q = q(db.scores.auth_user == user.id)
+		scores = q.select(
+			db.scores.ALL,
+			orderby=db.scores.acid,
+			)
+		for p in problems:
+			p.score = None
+			p.comment = ""
+			for s in scores:
+				if p.acid == s.acid:
+					p.score = s.score
+					p.comment = s.comment
+	return problems
 db.assignments.problems = Field.Method(lambda row, user=None: assignment_get_problems(row.assignments, user))
 def assignment_set_grade(assignment, user):
 	# delete the old grades; we're regrading
@@ -67,11 +74,11 @@ def assignment_get_grades(assignment, section_id=None, problem=None):
 	else:
 		grades = db(db.grades.assignment == assignment.id).select(db.grades.ALL)
 	for u in users:
-		u.grade = None
+		u.score = None
 		u.comment = ""
 		for g in grades:
 			if g.auth_user.id == u.id:
-				u.grade = g.score
+				u.score = g.score
 	return users
 db.assignments.grades_get = Field.Method(lambda row, section=None, problem=None: assignment_get_grades(row.assignments, section, problem))
 
