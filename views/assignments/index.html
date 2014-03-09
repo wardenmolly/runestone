@@ -18,7 +18,7 @@
 	      	{{ problems = row.assignments.problems(student)}}
 	      	{{for problem in problems:}}
 	      		<li class="list-group-item">
-	      			<span class="badge">{{=problem.grade}}</span>
+	      			<span class="badge">{{=problem.score}}</span>
 	      			<h4>{{=problem.acid}}</h4>
 	      			{{if problem.comment:}}
 	      			<p>{{=problem.comment}}</p>
