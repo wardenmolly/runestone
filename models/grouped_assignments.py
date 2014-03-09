@@ -76,8 +76,13 @@ def assignment_get_grades(assignment, section_id=None, problem=None):
 			if g.auth_user.id == u.id:
 				u.score = g.score
 	return users
-def problems_get_scores(problem, section_id):
-	rows = db(db.scores.auth_user == db.auth_user.id)(db.scores.acid == problem).select(
+def problems_get_scores(problem, section_id=None):
+	rows = db(db.scores.auth_user == db.auth_user.id)
+	if section_id:
+		rows = rows((db.sections.id==db.section_users.section) & (db.auth_user.id==db.section_users.auth_user))
+		rows = rows(db.sections.id == section_id)
+	rows = rows(db.scores.acid == problem)
+	rows = rows.select(
 		db.auth_user.ALL,
 		db.scores.ALL,
 		orderby = db.auth_user.last_name,
