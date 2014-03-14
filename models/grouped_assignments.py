@@ -8,28 +8,34 @@ db.define_table('assignments',
 	migrate='runestone_assignments.table'
 	)
 
+class score(object):
+	def __init__(self, acid=None, score=0, comment="", user=None):
+		self.acid = acid
+		self.user = user
+		self.score = score
+		self.comment = comment
+
 def assignment_get_problems(assignment, user=None):
 	if user:
 		q = db(db.problems.acid == db.code.acid)
 		q = q(db.problems.assignment == assignment.id)
 		q = q(db.code.sid == user.username)
 		grades = q.select(
-			db.code.ALL,
-			orderby=db.code.acid,
+			db.code.acid,
+			db.code.grade,
+			db.code.comment,
+			db.code.timestamp,
+			orderby=db.code.acid|db.code.timestamp,
 			distinct = db.code.acid,
 			)
 		# pass back code table in standardized format
 		scores = []
-		class score(object):
-			def __init__(self, acid, score, comment):
-				self.acid = acid,
-				self.score = score
-				self.comment = comment
 		for g in grades:
 			s = score(
 				acid = g.acid,
 				score = 0,
 				comment = "",
+				user = user,
 			)
 			s.acid = g.acid # don't know why we need this.
 			if g.grade:
@@ -87,22 +93,26 @@ def assignment_get_grades(assignment, section_id=None, problem=None):
 		grades = db(db.code.sid == db.auth_user.username)(db.code.acid == problem).select(
 			db.code.ALL,
 			db.auth_user.ALL,
-			orderby = db.code.acid|db.code.timestamp,
-			distinct = db.code.acid,
+			orderby = db.code.sid,
+			distinct = db.code.sid,
 			)
 	else:
 		grades = db(db.grades.assignment == assignment.id).select(db.grades.ALL)
+	scores = []
 	for u in users:
-		u.score = None
-		u.comment = ""
+		s = score(
+			user = u,
+			acid = problem,
+			)
 		for g in grades:
 			if g.auth_user.id == u.id:
 				if 'code' in g:
-					u.score = g.code.grade
+					s.score = g.code.grade
+					s.comment = g.code.comment
 				elif 'score' in g:
-					u.score = g.score
-
-	return users
+					s.score = g.score
+		scores.append(s)
+	return scores
 db.assignments.grades_get = Field.Method(lambda row, section=None, problem=None: assignment_get_grades(row.assignments, section, problem))
 def assignment_release_grades(assignment, released=True):
 	# update problems

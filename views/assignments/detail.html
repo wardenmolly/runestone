@@ -39,27 +39,27 @@
 				{{ pass }}
 			</ul>
 			<ul class="list-group">
-			{{for row in students:}}
-			<li class="list-group-item">
-				{{ if student and student.id == row.id: }}
-				<span class="badge">{{=row.score}}</span>
-				<a href="{{=URL('assignments','detail')}}{{=page_args(student=None)}}">
-					<span class="glyphicon glyphicon-remove"></span>
-					{{=row.first_name}} {{=row.last_name}}
-				</a>
-				{{ else: }}
-				{{ if acid: }}
-				<span class="badge grade">{{=row.score}}</span>
-				<a class="gradable" data-acid="{{=acid}}" data-student-id="{{=row.username}}"  href="{{=URL('assignments','detail')}}{{=page_args(student=row)}}">{{=row.first_name}} {{=row.last_name}}</a>
-				<p class="comment">{{=row.comment}}</p>
-				{{ else: }}
-				<span class="badge">{{=row.score}}</span>
-				<a href="{{=URL('assignments','detail')}}{{=page_args(student=row)}}">{{=row.first_name}} {{=row.last_name}}</a>
-				{{ pass }}
-				{{ pass }}
-			</li>
+			{{for row in scores:}}
+				<li class="list-group-item">
+					{{ if student and student.id == row.user.id: }}
+					<span class="badge">{{=row.score}}</span>
+					<a href="{{=URL('assignments','detail')}}{{=page_args(student=None)}}">
+						<span class="glyphicon glyphicon-remove"></span>
+						{{=row.user.first_name}} {{=row.user.last_name}}
+					</a>
+					{{ else: }}
+					{{ if acid: }}
+					<span class="badge grade">{{=row.score}}</span>
+					<a class="gradable" data-acid="{{=acid}}" data-student-id="{{=row.user.username}}"  href="{{=URL('assignments','detail')}}{{=page_args(student=row.user)}}">{{=row.user.first_name}} {{=row.user.last_name}}</a>
+					<p class="comment">{{=row.comment}}</p>
+					{{ else: }}
+					<span class="badge">{{=row.score}}</span>
+					<a href="{{=URL('assignments','detail')}}{{=page_args(student=row.user)}}">{{=row.user.first_name}} {{=row.user.last_name}}</a>
+					{{ pass }}
+					{{ pass }}
+				</li>
 			{{pass}}
-		</ul>
+			</ul>
 		</div>
 		<div class="col-md-6">
 			{{if student:}}
@@ -72,7 +72,6 @@
 			{{for row in problems:}}
 			    <li class="list-group-item">
 			    	{{if student:}}
-			    	{{print row.acid}}
 					<span class="badge grade">{{=row.score}}</span>
 					<a class="gradable" data-acid="{{=row.acid}}" data-student-id="{{=student.username}}" href="{{=URL('assignments','detail')}}{{=page_args(student=student,acid=row.acid)}}">{{=row.acid}}</a>
 					<p class="comment">{{=row.comment}}</p>

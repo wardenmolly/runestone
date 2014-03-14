@@ -295,7 +295,7 @@ def detail():
 	if "acid" in request.vars:
 		acid = request.vars.acid
 
-	students = assignment.grades_get(section=selected_section, problem=acid)
+	scores = assignment.grades_get(section=selected_section, problem=acid)
 	
 	student = None
 	if 'sid' in request.vars:
@@ -317,7 +317,7 @@ def detail():
 	return dict(
 		assignment = assignment,
 		problems = problems,
-		students = students,
+		scores = scores,
 		student = student,
 		sections = sections,
 		selected_section = selected_section,
