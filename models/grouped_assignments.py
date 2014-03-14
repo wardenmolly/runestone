@@ -9,11 +9,22 @@ db.define_table('assignments',
 	)
 
 class score(object):
-	def __init__(self, acid=None, score=0, comment="", user=None):
+	def __init__(self, acid=None, points=0, comment="", user=None):
 		self.acid = acid
 		self.user = user
-		self.score = score
+		self.points = points
 		self.comment = comment
+
+def assignment_get_scores(assignment, problem=None, user=None, section_id=None):
+	scores = []
+	grades = db(db.grades.assignment == assignment.id).select(db.grades.ALL)
+	for g in grades:
+		scores.append(score(
+			points = g.score,
+			user = g.auth_user,
+			))
+	return scores
+db.assignments.scores = Field.Method(lambda row, problem=None, user=None, section_id=None: assignment_get_scores(row.assignments, problem, user, section_id))
 
 def assignment_get_problems(assignment, user=None):
 	if user:
@@ -49,34 +60,6 @@ def assignment_get_problems(assignment, user=None):
 		orderby=db.problems.acid
 		)
 	return problems
-db.assignments.problems = Field.Method(lambda row, user=None: assignment_get_problems(row.assignments, user))
-def assignment_set_grade(assignment, user):
-	# delete the old grades; we're regrading
-	db(db.grades.assignment == assignment.id)(db.grades.auth_user == user.id).delete()
-	
-	points = 0.0
-	for prob in assignment.problems(user):
-		if not prob.score:
-			continue
-		points = points + prob.score
-
-	if assignment.grade_type == 'checkmark':
-		#threshold grade
-		if points >= assignment.threshold:
-			points = assignment.points
-		else:
-			points = 0
-	else:
-		# they got the points they earned
-		pass
-
-	db.grades.insert(
-		auth_user = user.id,
-		assignment = assignment.id,
-		score = points,
-		)
-	return points
-db.assignments.grade = Field.Method(lambda row, user: assignment_set_grade(row.assignments, user))
 def assignment_get_grades(assignment, section_id=None, problem=None):
 	""" Return a list of users with grades for assignment (or problem) """
 	if section_id:
@@ -113,7 +96,35 @@ def assignment_get_grades(assignment, section_id=None, problem=None):
 					s.score = g.score
 		scores.append(s)
 	return scores
-db.assignments.grades_get = Field.Method(lambda row, section=None, problem=None: assignment_get_grades(row.assignments, section, problem))
+
+def assignment_set_grade(assignment, user):
+	# delete the old grades; we're regrading
+	db(db.grades.assignment == assignment.id)(db.grades.auth_user == user.id).delete()
+	
+	points = 0.0
+	for prob in assignment.problems(user):
+		if not prob.score:
+			continue
+		points = points + prob.score
+
+	if assignment.grade_type == 'checkmark':
+		#threshold grade
+		if points >= assignment.threshold:
+			points = assignment.points
+		else:
+			points = 0
+	else:
+		# they got the points they earned
+		pass
+
+	db.grades.insert(
+		auth_user = user.id,
+		assignment = assignment.id,
+		score = points,
+		)
+	return points
+db.assignments.grade = Field.Method(lambda row, user: assignment_set_grade(row.assignments, user))
+
 def assignment_release_grades(assignment, released=True):
 	# update problems
 	db(db.grades.assignment == assignment.id).update(released=released)

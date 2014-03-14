@@ -291,18 +291,25 @@ def detail():
 	selected_section = None
 	if "section_id" in request.vars:
 		selected_section = int(request.vars.section_id)
-	acid = None
-	if "acid" in request.vars:
-		acid = request.vars.acid
 
-	scores = assignment.grades_get(section=selected_section, problem=acid)
+
+	students = db(db.auth_user.course_id == course.id)
+	if selected_section:
+		# filter by section
+		pass
+	students = students.select(db.auth_user.ALL)
+	problems = db(db.problems.assignment == assignment.id).select(db.problems.ALL)
 	
+	# getting scores	
 	student = None
 	if 'sid' in request.vars:
 		student_id = request.vars.sid
 		student = db(db.auth_user.id == student_id).select().first()
-	problems = assignment.problems(student)
+		acid = None
+	if "acid" in request.vars:
+		acid = request.vars.acid
 
+	scores = assignment.scores(problem = acid, user=student, section_id=selected_section)
 	# Used as a convinence function for navigating within the page template
 	def page_args(id=assignment.id, section_id=selected_section, student=student, acid=acid):
 		arg_str = "?id=%d" % (id)
@@ -317,8 +324,9 @@ def detail():
 	return dict(
 		assignment = assignment,
 		problems = problems,
-		scores = scores,
+		students = students,
 		student = student,
+		scores = scores,
 		sections = sections,
 		selected_section = selected_section,
 		page_args = page_args,
