@@ -29,11 +29,29 @@ def assignment_get_scores(assignment, problem=None, user=None, section_id=None):
 		for g in grades:
 			scores.append(score(
 				points = g.code.grade,
-				acid = g.code.acid,
+				comment = g.code.comment,
+				acid = problem,
 				user = g.auth_user,
 				))
 	elif user:
-		pass
+		q = db(db.problems.acid == db.code.acid)
+		q = q(db.problems.assignment == assignment.id)
+		q = q(db.code.sid == user.username)
+		grades = q.select(
+			db.code.acid,
+			db.code.grade,
+			db.code.comment,
+			db.code.timestamp,
+			orderby=db.code.acid|db.code.timestamp,
+			distinct = db.code.acid,
+			)
+		for g in grades:
+			scores.append(score(
+				points = g.grade,
+				comment = g.comment,
+				acid = g.acid,
+				user = user,
+				))
 	else:
 		grades = db(db.grades.assignment == assignment.id).select(db.grades.ALL)
 		for g in grades:
