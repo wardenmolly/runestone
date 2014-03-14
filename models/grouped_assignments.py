@@ -17,12 +17,19 @@ class score(object):
 
 def assignment_get_scores(assignment, problem=None, user=None, section_id=None):
 	scores = []
-	grades = db(db.grades.assignment == assignment.id).select(db.grades.ALL)
-	for g in grades:
-		scores.append(score(
-			points = g.score,
-			user = g.auth_user,
-			))
+	if problem and user:
+		pass
+	elif problem:
+		pass
+	elif user:
+		pass
+	else:
+		grades = db(db.grades.assignment == assignment.id).select(db.grades.ALL)
+		for g in grades:
+			scores.append(score(
+				points = g.score,
+				user = g.auth_user,
+				))
 	return scores
 db.assignments.scores = Field.Method(lambda row, problem=None, user=None, section_id=None: assignment_get_scores(row.assignments, problem, user, section_id))
 
