@@ -20,7 +20,18 @@ def assignment_get_scores(assignment, problem=None, user=None, section_id=None):
 	if problem and user:
 		pass
 	elif problem:
-		pass
+		grades = db(db.code.sid == db.auth_user.username)(db.code.acid == problem).select(
+			db.code.ALL,
+			db.auth_user.ALL,
+			orderby = db.code.sid,
+			distinct = db.code.sid,
+			)
+		for g in grades:
+			scores.append(score(
+				points = g.code.grade,
+				acid = g.code.acid,
+				user = g.auth_user,
+				))
 	elif user:
 		pass
 	else:
