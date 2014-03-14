@@ -10,13 +10,33 @@ db.define_table('assignments',
 
 def assignment_get_problems(assignment, user=None):
 	if user:
-		q = db(db.problems.acid == db.scores.acid)
+		q = db(db.problems.acid == db.code.acid)
 		q = q(db.problems.assignment == assignment.id)
-		q = q(db.scores.auth_user == user.id)
-		scores = q.select(
-			db.scores.ALL,
-			orderby=db.scores.acid,
+		q = q(db.code.sid == user.username)
+		grades = q.select(
+			db.code.ALL,
+			orderby=db.code.acid,
+			distinct = db.code.acid,
 			)
+		# pass back code table in standardized format
+		scores = []
+		class score(object):
+			def __init__(self, acid, score, comment):
+				self.acid = acid,
+				self.score = score
+				self.comment = comment
+		for g in grades:
+			s = score(
+				acid = g.acid,
+				score = 0,
+				comment = "",
+			)
+			s.acid = g.acid # don't know why we need this.
+			if g.grade:
+				s.score = g.grade
+			if g.comment:
+				s.comment = g.comment
+			scores.append(s)
 		return scores
 	problems = db(db.problems.assignment == assignment.id).select(
 		db.problems.ALL,

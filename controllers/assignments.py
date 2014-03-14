@@ -363,10 +363,10 @@ def problem():
 		'grade':q.code.grade,
 		'comment':q.code.comment,
 		}
-	if q.code.grade == None:
-		q.code.grade = 0
-	if q.code.comment == None:
-		q.code.comment = ""
+	if res['grade'] == None:
+		res['grade'] = 0
+	if res['comment'] == None:
+		res['comment'] = ""
 	return json.dumps(res)
 
 def migrate_to_scores():

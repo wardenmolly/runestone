@@ -72,6 +72,7 @@
 			{{for row in problems:}}
 			    <li class="list-group-item">
 			    	{{if student:}}
+			    	{{print row.acid}}
 					<span class="badge grade">{{=row.score}}</span>
 					<a class="gradable" data-acid="{{=row.acid}}" data-student-id="{{=student.username}}" href="{{=URL('assignments','detail')}}{{=page_args(student=student,acid=row.acid)}}">{{=row.acid}}</a>
 					<p class="comment">{{=row.comment}}</p>
