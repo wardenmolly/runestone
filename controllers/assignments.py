@@ -362,13 +362,13 @@ def problem():
 		'username':q.auth_user.username,
 		'name':"%s %s" % (q.auth_user.first_name, q.auth_user.last_name),
 		'code':q.code.code,
-		'grade':None,
-		'comment':None,
+		'grade':q.code.grade,
+		'comment':q.code.comment,
 		}
-	score = db(db.scores.acid == request.vars.acid)(db.scores.auth_user == int(request.vars.sid)).select(db.scores.ALL).first()
-	if score:
-		res['grade'] = score.score
-		res['comment'] = score.comment
+	if q.code.grade == None:
+		q.code.grade = 0
+	if q.code.comment == None:
+		q.code.comment = ""
 	return json.dumps(res)
 
 def migrate_to_scores():
