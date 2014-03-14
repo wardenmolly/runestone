@@ -337,16 +337,14 @@ def problem():
 	if 'grade' in request.vars and 'comment' in request.vars:
 		grade = float(request.vars.grade)
 		comment = request.vars.comment
-		db.scores.update_or_insert(
-			((db.scores.acid == request.vars.acid) & (db.scores.auth_user == int(request.vars.sid))),
-			acid = request.vars.acid,
-			auth_user = int(request.vars.sid),
-			score = grade,
+		db.code.update_or_insert(
+			((db.code.acid == request.vars.acid) & (db.code.sid == request.vars.sid)),
+			grade = grade,
 			comment = comment,
 			)
 	q = db(db.code.sid == db.auth_user.username)
 	q = q(db.code.acid == request.vars.acid)
-	q = q(db.auth_user.id == int(request.vars.sid))
+	q = q(db.auth_user.username == request.vars.sid)
 	q = q.select(
 		db.auth_user.ALL,
 		db.code.ALL,
