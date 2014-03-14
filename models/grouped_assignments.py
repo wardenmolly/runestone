@@ -53,8 +53,6 @@ def assignment_set_grade(assignment, user):
 db.assignments.grade = Field.Method(lambda row, user: assignment_set_grade(row.assignments, user))
 def assignment_get_grades(assignment, section_id=None, problem=None):
 	""" Return a list of users with grades for assignment (or problem) """
-	if problem:
-		return problems_get_scores(problem, section_id)
 	if section_id:
 		section_users = db((db.sections.id==db.section_users.section) & (db.auth_user.id==db.section_users.auth_user))
 		users = section_users(db.auth_user.course_id == assignment.course)
@@ -66,7 +64,12 @@ def assignment_get_grades(assignment, section_id=None, problem=None):
 		orderby = db.auth_user.last_name,
 		)
 	if problem:
-		grades = db(db.scores.acid == problem).select(db.scores.ALL)
+		grades = db(db.code.sid == db.auth_user.username)(db.code.acid == problem).select(
+			db.code.ALL,
+			db.auth_user.ALL,
+			orderby = db.code.acid|db.code.timestamp,
+			distinct = db.code.acid,
+			)
 	else:
 		grades = db(db.grades.assignment == assignment.id).select(db.grades.ALL)
 	for u in users:
@@ -74,25 +77,11 @@ def assignment_get_grades(assignment, section_id=None, problem=None):
 		u.comment = ""
 		for g in grades:
 			if g.auth_user.id == u.id:
-				u.score = g.score
-	return users
-def problems_get_scores(problem, section_id=None):
-	rows = db(db.scores.auth_user == db.auth_user.id)
-	if section_id:
-		rows = rows((db.sections.id==db.section_users.section) & (db.auth_user.id==db.section_users.auth_user))
-		rows = rows(db.sections.id == section_id)
-	rows = rows(db.scores.acid == problem)
-	rows = rows.select(
-		db.auth_user.ALL,
-		db.scores.ALL,
-		orderby = db.auth_user.last_name,
-		)
-	users = []
-	for row in rows:
-		user = row.auth_user
-		user.score = row.scores.score
-		user.comment = row.scores.comment
-		users.append(user)
+				if 'code' in g:
+					u.score = g.code.grade
+				elif 'score' in g:
+					u.score = g.score
+
 	return users
 db.assignments.grades_get = Field.Method(lambda row, section=None, problem=None: assignment_get_grades(row.assignments, section, problem))
 def assignment_release_grades(assignment, released=True):
@@ -109,15 +98,6 @@ db.define_table('problems',
 	Field('assignment',db.assignments),
 	Field('acid','string'),
 	migrate='runestones_problems.table',
-	)
-
-db.define_table('scores',
-	Field('acid','string'),
-	Field('auth_user',db.auth_user),
-	Field('score','double'),
-	Field('comment','string'),
-	Field('released','boolean'),
-	migrate='runestone_scores.table',
 	)
 
 db.define_table('grades',
