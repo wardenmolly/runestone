@@ -3,6 +3,20 @@
 <p class="grade"><strong>{{=student.points_total}} points</strong> of {{=student.points_possible}} points (or {{=student.points_percentage}}%)</p>
 <p class="last_action"><em>Last Action: {{=last_action.timestamp}}</em></p>
 <h2>Assignments</h2>
+<ul class="nav nav-pills">
+	<li {{if not assignment_type:}}class="active"{{pass}}>
+		<a href="{{=URL('assignments','index')}}?sid={{=student.id}}">
+			All
+		</a>
+	</li>
+	{{ for type in types: }}
+	<li {{if assignment_type and assignment_type.id==type.id:}}class="active"{{pass}}>
+		<a href="{{=URL('assignments','index')}}?sid={{=student.id}}&atid={{=type.id}}">
+			{{=type.name}}
+		</a>
+	</li>
+	{{ pass }}
+</ul>
 <div class="panel-group" id="assignments">
 {{for row in assignments:}}
     <div class="panel panel-default">
