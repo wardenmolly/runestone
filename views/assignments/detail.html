@@ -32,7 +32,7 @@
 			{{for s in students:}}
 				{{ found = False }}
 				{{ for sc in scores: }}
-					{{ if sc.user.id == s.id: }}
+					{{ if not found and sc.user.id == s.id: }}
 						{{ found = True}}
 				<li class="list-group-item">
 					<span class="badge">{{=sc.points}}</span>
@@ -54,7 +54,7 @@
 			{{for p in problems:}}
 				{{ found = False }}
 				{{ for sc in scores: }}
-					{{ if sc.acid == p.acid: }}
+					{{ if not found and sc.acid == p.acid: }}
 						{{ found = True }}
 						<li class="list-group-item">
 							<span class="badge">{{=sc.points}}</span>
@@ -62,7 +62,9 @@
 						</li>						
 					{{ pass }}
 				{{ pass }}
+				{{ if not found: }}
 				<li class="list-group-item">{{=p.acid}}</li>
+				{{ pass }}
 			{{pass}}
 			</ul>
 		</div>
