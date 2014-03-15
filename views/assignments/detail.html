@@ -43,10 +43,11 @@
 				</li>
 						{{ else: }}
 				<li class="list-group-item">
-					<span class="badge">{{=sc.points}}</span>
+					<span class="badge grade">{{=sc.points}}</span>
 					<a {{ if sc.acid: }}class="gradable"{{ pass }} data-acid="{{=sc.acid}}" data-student-id="{{=s.username}}" href="{{=URL('assignments','detail')}}{{=page_args(student=s)}}">
 						{{=s.first_name}} {{=s.last_name}}
 					</a>
+					<p class="comment">{{=sc.comment}}</p>
 				</li>
 						{{ pass }}
 					{{ pass }}
@@ -78,10 +79,11 @@
 				</li>
 						{{ else: }}
 				<li class="list-group-item">
-					<span class="badge">{{=sc.points}}</span>
+					<span class="badge grade">{{=sc.points}}</span>
 					<a {{ if sc.user: }}class="gradable"{{ pass }} data-acid="{{=p.acid}}" data-student-id="{{=sc.user.username}}" href="{{=URL('assignments','detail')}}{{=page_args(acid=p.acid)}}">
 						{{=p.acid}}
 					</a>
+					<p class="comment">{{=sc.comment}}</p>
 				</li>
 						{{ pass }}					
 					{{ pass }}
