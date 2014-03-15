@@ -520,7 +520,7 @@ def getassignmentgrade():
         if result.comment:
             ret['comment'] = result.comment
 
-        query = '''select avg(score), count(score)
+        query = '''select avg(grade), count(grade)
                    from code where acid='%s';''' % (divid)
 
         rows = db.executesql(query)
