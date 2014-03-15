@@ -306,6 +306,7 @@ def detail():
 		student_id = request.vars.sid
 		student = db(db.auth_user.id == student_id).select().first()
 		acid = None
+	acid = None
 	if "acid" in request.vars:
 		acid = request.vars.acid
 
