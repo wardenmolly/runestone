@@ -7,7 +7,7 @@ db.define_table('assignment_types',
 
 db.define_table('assignments',
 	Field('course',db.courses),
-	Field('assignment_type', 'string'),
+	Field('assignment_type', db.assignment_types, requires=IS_EMPTY_OR(IS_IN_DB(db,'assignment_types.id','%(name)s'))),
 	Field('name', 'string'),
 	Field('points', 'integer'),
 	Field('threshold', 'integer', default=1),
