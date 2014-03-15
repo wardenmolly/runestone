@@ -499,12 +499,14 @@ def getassignmentgrade():
     divid = request.vars.div_id
 
     result = db(
-        (db.scores.auth_user == auth.user.id) &
-        (db.scores.acid == divid) &
-        (db.scores.released == True)
+        (db.code.sid == auth.user.username) &
+        (db.code.acid == db.problems.acid) &
+        (db.problems.assignment == db.assignments.id) &
+        (db.assignments.released == True) &
+        (db.code.acid == divid)
         ).select(
-            db.scores.score,
-            db.scores.comment,
+            db.code.grade,
+            db.code.comment,
         ).first()
 
     ret = {
@@ -514,12 +516,12 @@ def getassignmentgrade():
         'count': 'None',
     }
     if result:
-        ret['grade'] = result.score
+        ret['grade'] = result.grade
         if result.comment:
             ret['comment'] = result.comment
 
         query = '''select avg(score), count(score)
-                   from scores where acid='%s';''' % (divid)
+                   from code where acid='%s';''' % (divid)
 
         rows = db.executesql(query)
         ret['avg'] = rows[0][0]
