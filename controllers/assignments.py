@@ -91,10 +91,9 @@ def update():
 	course = db(db.courses.id == auth.user.course_id).select().first()
 	assignment = db(db.assignments.id == request.get_vars.id).select().first()
 
-	db.assignments.grade_type.widget = SQLFORM.widgets.radio.widget
 	form = SQLFORM(db.assignments, assignment,
 	    showid = False,
-	    fields=['name','points','grade_type','threshold'],
+	    fields=['name','points','assignment_type','threshold','released'],
 	    keepvalues = True,
 	    formstyle='table3cols',
 	    )

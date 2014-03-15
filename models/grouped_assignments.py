@@ -1,8 +1,15 @@
+db.define_table('assignment_types',
+	Field('name','string'),
+	Field('grade_type', 'string', default="additive", requires=IS_IN_SET(['additive','checkmark'])),
+	format = '%(names)s',
+	migrate='runestone_assignment_types.table',
+	)
+
 db.define_table('assignments',
 	Field('course',db.courses),
+	Field('assignment_type', 'string'),
 	Field('name', 'string'),
 	Field('points', 'integer'),
-	Field('grade_type', 'string', default="additive", requires=IS_IN_SET(['additive','checkmark'])),
 	Field('threshold', 'integer', default=1),
 	Field('released','boolean'),
 	format='%(name)s',
