@@ -4,6 +4,7 @@ db.define_table('assignments',
 	Field('points', 'integer'),
 	Field('grade_type', 'string', default="additive", requires=IS_IN_SET(['additive','checkmark'])),
 	Field('threshold', 'integer', default=1),
+	Field('released','boolean'),
 	format='%(name)s',
 	migrate='runestone_assignments.table'
 	)
@@ -90,11 +91,8 @@ db.assignments.grade = Field.Method(lambda row, user: assignment_set_grade(row.a
 
 def assignment_release_grades(assignment, released=True):
 	# update problems
-	db(db.grades.assignment == assignment.id).update(released=released)
-	# update scores
-	problems = db(db.problems.assignment == assignment.id).select()
-	for problem in problems:
-		db(db.scores.acid == problem.acid).update(released = released)
+	assignment.released = True
+	assignment.update_record()
 	return True
 db.assignments.release_grades = Field.Method(lambda row, released=True: assignment_release_grades(row.assignments, released))
 
@@ -108,7 +106,6 @@ db.define_table('grades',
 	Field('auth_user', db.auth_user),
 	Field('assignment', db.assignments),
 	Field('score', 'double'),
-	Field('released','boolean'),
 	migrate='runestone_grades.table',
 	)
 
