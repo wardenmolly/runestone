@@ -67,10 +67,8 @@ def assignment_set_grade(assignment, user):
 	db(db.grades.assignment == assignment.id)(db.grades.auth_user == user.id).delete()
 	
 	points = 0.0
-	for prob in assignment.problems(user):
-		if not prob.score:
-			continue
-		points = points + prob.score
+	for prob in assignment.scores(user = user):
+		points = points + prob.points
 
 	if assignment.grade_type == 'checkmark':
 		#threshold grade
