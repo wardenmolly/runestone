@@ -34,16 +34,24 @@
 				{{ for sc in scores: }}
 					{{ if not found and sc.user.id == s.id: }}
 						{{ found = True}}
+						{{ if selected_student and s.id == selected_student.id: }}
+				<li class="list-group-item">{{=s.first_name}} {{=s.last_name}}</li>
+						{{ else: }}
 				<li class="list-group-item">
 					<span class="badge">{{=sc.points}}</span>
 					<a href="{{=URL('assignments','detail')}}{{=page_args(student=s)}}">
 						{{=s.first_name}} {{=s.last_name}}
 					</a>
 				</li>
+						{{ pass }}
 					{{ pass }}
 				{{ pass }}
 				{{ if not found: }}
-				<li class="list-group-item">{{=s.first_name}} {{=s.last_name}}</li>
+				<li class="list-group-item">
+					<a href="{{=URL('assignments','detail')}}{{=page_args(student=s)}}">
+						{{=s.first_name}} {{=s.last_name}}
+					</a>
+				</li>
 				{{ pass }}
 			{{pass}}
 			</ul>
@@ -56,14 +64,26 @@
 				{{ for sc in scores: }}
 					{{ if not found and sc.acid == p.acid: }}
 						{{ found = True }}
-						<li class="list-group-item">
-							<span class="badge">{{=sc.points}}</span>
-							<a href="#">{{=p.acid}}</a>
-						</li>						
+						{{ if selected_acid and selected_acid == p.acid: }}
+				<li class="list-group-item">
+						{{=p.acid}}
+				</li>
+						{{ else: }}
+				<li class="list-group-item">
+					<span class="badge">{{=sc.points}}</span>
+					<a href="{{=URL('assignments','detail')}}{{=page_args(acid=p.acid)}}">
+						{{=p.acid}}
+					</a>
+				</li>
+						{{ pass }}					
 					{{ pass }}
 				{{ pass }}
 				{{ if not found: }}
-				<li class="list-group-item">{{=p.acid}}</li>
+				<li class="list-group-item">
+					<a href="{{=URL('assignments','detail')}}{{=page_args(acid=p.acid)}}">
+						{{=p.acid}}
+					</a>
+				</li>
 				{{ pass }}
 			{{pass}}
 			</ul>
