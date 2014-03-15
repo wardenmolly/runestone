@@ -346,8 +346,9 @@ def problem():
 	if 'grade' in request.vars and 'comment' in request.vars:
 		grade = float(request.vars.grade)
 		comment = request.vars.comment
-		db.code.update_or_insert(
-			((db.code.acid == request.vars.acid) & (db.code.sid == request.vars.sid)),
+		db((db.code.acid == request.vars.acid) &
+			(db.code.sid == request.vars.sid)
+			).update(
 			grade = grade,
 			comment = comment,
 			)
