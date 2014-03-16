@@ -73,12 +73,17 @@ db.assignments.scores = Field.Method(lambda row, problem=None, user=None, sectio
 def assignment_set_grade(assignment, user):
 	# delete the old grades; we're regrading
 	db(db.grades.assignment == assignment.id)(db.grades.auth_user == user.id).delete()
+
+	assignment_type = db(db.assignment_types.id == assignment.id).select().first()
+	if not assignment_type:
+		# if we don't know how to grade this assignment, don't grade the assignment.
+		return 0
 	
 	points = 0.0
 	for prob in assignment.scores(user = user):
 		points = points + prob.points
 
-	if assignment.grade_type == 'checkmark':
+	if assignment_type.grade_type == 'checkmark':
 		#threshold grade
 		if points >= assignment.threshold:
 			points = assignment.points
