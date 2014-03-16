@@ -192,63 +192,30 @@ def update():
 
 
 	problem_query_form = FORM(
-		_method="get",
-		_action=URL('assignments','update')
+		_method="post",
+		_action=URL('assignments','update')+'?id=%d' % (assignment.id)
 		)
 	problem_query_form.append(
 		INPUT(
-			_type="hidden",
-			_name="id",
-			_value=assignment.id,
-			))
-	problem_query_form.append(
-		INPUT(
 			_type="text",
-			_name="query_string"
+			_name="acid"
 			))
 	problem_query_form.append(
 		INPUT(
 			_type="submit",
 			_value="Search"
 			))
-	problem_results = None
-	problem_query_string=""
-	if 'query_string' in request.get_vars:
-		problem_query_string = request.get_vars['query_string']
-		problem_results = db(db.code.acid.like(request.get_vars['query_string']+"%")).select(
-		db.code.ALL,
-		orderby=db.code.acid,
-		distinct=db.code.acid,
-		)
-
-	problem_results_form = FORM(
-		_method="post",
-		_action=URL('assignments','update')+'?id=%d&query_string=%s' % (assignment.id,problem_query_string),
-		)
-	if problem_results:
-		for problem in problem_results:
-			problem_results_form.append(LABEL(
-				INPUT(_type="checkbox", _name=problem.acid, _value="add"),
-				problem.acid,
-				_class="checkbox",
-				))
-	problem_results_form.append(
-		INPUT(
-			_type="submit",
-			_value="Add Problems",
-			))
-	if problem_results_form.accepts(request,session,formname="problem_results_form"):
-		count = 0
-		for var in problem_results_form.vars:
-			print "counint var "+var
-			if problem_results_form.vars[var] == 'add':
-				count += 1
-				db.problems.insert(
-					assignment = assignment.id,
-					acid = var,
-					)
-		if count > 0:
-			session.flash = "Added %d problems" % (count)
+	if problem_query_form.accepts(request,session,formname="problem_query_form"):		
+		if 'acid' in problem_query_form.vars:
+			acid = problem_query_form.vars['acid']
+			if db(db.problems.acid == acid)(db.problems.assignment == assignment.id).select().first():
+				session.flash = "ACID %s already exists for assignment." % (acid)
+				return redirect(URL('assignments','update')+'?id=%d' % (assignment.id))
+			db.problems.insert(
+				assignment = assignment.id,
+				acid = acid,
+				)
+			session.flash = "Added %s problems" % (acid)
 		else:
 			session.flash = "Didn't add any problems."
 		return redirect(URL('assignments','update')+'?id=%d' % (assignment.id))
@@ -259,8 +226,6 @@ def update():
 		new_deadline_form = new_deadline_form,
 		delete_deadline_form = delete_deadline_form,
 		problem_query_form = problem_query_form,
-		problem_results = problem_results,
-		problem_results_form = problem_results_form,
 		problems_delete_form = problems_delete_form,
 		)
 

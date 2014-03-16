@@ -18,16 +18,10 @@
 			{{=new_deadline_form}}
 		</div>
 		<div class="col-md-4">
-			{{	if problem_results: }}
-			<h3>Problem Results:</h3>
-			{{=problem_results_form}}
-			<a class="btn" href="{{=URL('assignments','update')}}?id={{=assignment.id}}">Cancel</a>
-			{{ else: }}
 			<h3>Problems in Assignment</h3>
 			{{=problems_delete_form}}
 			<h3>Add Problems</h3>
 			{{=problem_query_form}}
-			{{ pass }}
 		</div>
 	</div>
 </div>
