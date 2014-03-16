@@ -35,8 +35,8 @@ def index():
 	assignments = assignments(db.assignments.course == course.id)
 	assignments = assignments(db.grades.auth_user == student.id)
 	assignments = assignments(db.assignments.released == True)
-#	if assignment_type:
-#		assignments = assignments(db.assignments.assignment_type == assignment_type.id)
+	if assignment_type:
+		assignments = assignments(db.assignments.assignment_type == assignment_type.id)
 	assignments = assignments.select(
 		db.assignments.ALL,
 		db.grades.ALL,
