@@ -27,8 +27,10 @@ For this week you have the following graded activities:
       * answer :ref:`questions about session18.py <session18>`
    
    * Before Thursday's class:
-      * Review slides ``REST APIs`` in cTools resources/Slides (coming soon)
-      * answer questions below (coming soon)
+      * Review slides ``REST APIs`` in cTools resources/Slides
+      * get the code file lectures/session19.py via Bitbucket.org
+         * ``git pull upstream master``
+      * answer :ref:`questions about session19.py <session19>`
 
 #. Turn in the reading response, by 8 PM the night before your registered section meets.
 
@@ -112,3 +114,41 @@ Describe what the try_url_demo function of session18.py does
    s = """
 
    """
+
+.. _session19:
+
+Session 19 prep
+---------------
+
+Explain the output produced by the code on line 10 of session19.py
+
+.. actex:: session19_0
+
+   # Fill in your response in between the triple quotes
+   s = """
+
+   """
+
+Did you have any trouble getting a flickr key?
+  
+.. actex:: session19_1
+
+   # Fill in your response in between the triple quotes
+   s = """
+
+   """
+   
+What's the URL for one of the photos that opened in your browser when you ran session19.py?
+  
+.. actex:: session19_2
+
+   # Fill in your response below
+   url  = ''
+   print url
+
+Write code to pick out the "owner" of the third photo retrieved in the flickrdemo function. (It's OK to modify the flicrdemo function to do that. Test your code by running it at your command prompt and paste the relevant line or lines of code here.)
+  
+.. actex:: session19_3
+
+   # Paste your code here
+   
