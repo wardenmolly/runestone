@@ -24,7 +24,7 @@ For this week you have the following graded activities:
       * Review slides ``HTTP and urllib2 and TryExcept`` in cTools resources/Slides
       * get the code file lectures/session18.py via Bitbucket.org
          * ``git pull upstream master``
-      * answer questions below (coming soon)
+      * answer :ref:`questions about session18.py <session18>`
    
    * Before Thursday's class:
       * Review slides ``REST APIs`` in cTools resources/Slides (coming soon)
@@ -33,47 +33,82 @@ For this week you have the following graded activities:
 #. Turn in the reading response, by 8 PM the night before your registered section meets.
 
    * Read *The Success of Open Source*, Chapter 2
-   * :ref:`Reading response 8 <response_8>` (coming soon)
+   * :ref:`Reading response 8 <response_8>`
 
 #. Do Problem Set 8:
 
    * See /ps8 folder distributed via Bitbucket.org
 
-.. delayed 
 
-   .. _response_8:
-   
-   Reading Response 8
-   ------------------
-   
-   Question 1
-   
-   .. actex:: rr_8_1
-   
-      # Fill in your response in between the triple quotes
-      s = """
-   
-      """
-   
-   Question 2
-   
-   .. actex:: rr_8_2
-   
-      # Fill in your response in between the triple quotes
-      s = """
-   
-      """
-   
-   Question 3
-   
-   .. actex:: rr_8_3
-   
-      # Fill in your response in between the triple quotes
-      s = """
-   
-      """
-   
-   
-   
-   
-                
+.. _response_8:
+
+Reading Response 8
+------------------
+
+Why is the GPL described as `viral`? Do you think it gives programmers more or less "freedom" to do what they want with software than the BSD-style license does?
+  
+.. actex:: rr_8_1
+
+   # Fill in your response in between the triple quotes
+   s = """
+
+   """
+
+The chapter describes the idea of pipes as an important breakthrough. To get a clearer idea of what is meant by that, learn a little about how to use pipes in the bash shell, by following `this tutorial <http://www.tutorialspoint.com/unix/unix-pipes-filters.htm>`_. Then jot down your thoughts about why pipes was a breakthrough. What did it enable in the development of unix?
+
+.. actex:: rr_8_2
+
+   # Fill in your response in between the triple quotes
+   s = """
+
+   """
+
+What material from the chapter would you like to discuss in class?
+
+.. actex:: rr_8_3
+
+   # Fill in your response in between the triple quotes
+   s = """
+
+   """
+
+.. _session18:
+
+Session 18 prep
+---------------
+
+Explain, line by line, what the code on line 62-64 of session18.py does
+  
+.. actex:: session18_1
+
+   # Fill in your response in between the triple quotes
+   s = """
+
+   """
+
+Describe briefly what you learned about the structure of the data in file nested.json from lines 69-73 of session18.py does
+  
+.. actex:: session18_2
+
+   # Fill in your response in between the triple quotes
+   s = """
+
+   """
+
+Explain, in your own words, what the try/except construct in python does
+  
+.. actex:: session18_3
+
+   # Fill in your response in between the triple quotes
+   s = """
+
+   """
+
+Describe what the try_url_demo function of session18.py does
+  
+.. actex:: session18_4
+
+   # Fill in your response in between the triple quotes
+   s = """
+
+   """
