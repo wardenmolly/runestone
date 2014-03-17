@@ -87,7 +87,7 @@ def saveprog():
     def strip_suffix(id):
         idx = id.rfind('-') - 1
         return id[:idx]
-    assignment = db(db.assignments.query == strip_suffix(acid)).select().first()
+    assignment = db(db.assignments.id == db.problems.assignment)(db.problems.acid == acid).select(db.assignments.ALL).first()
     
     section_users = db((db.sections.id==db.section_users.section) & (db.auth_user.id==db.section_users.auth_user))
     section = section_users(db.auth_user.id == user.id).select(db.sections.ALL).first()
