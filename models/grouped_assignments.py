@@ -74,8 +74,9 @@ def assignment_set_grade(assignment, user):
 	# delete the old grades; we're regrading
 	db(db.grades.assignment == assignment.id)(db.grades.auth_user == user.id).delete()
 
-	assignment_type = db(db.assignment_types.id == assignment.id).select().first()
+	assignment_type = db(db.assignment_types.id == assignment.assignment_type).select().first()
 	if not assignment_type:
+		print "no assignment type"
 		# if we don't know how to grade this assignment, don't grade the assignment.
 		return 0
 	
