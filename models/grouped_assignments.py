@@ -81,15 +81,15 @@ def assignment_set_grade(assignment, user):
 		return 0
 	
 	points = 0.0
-	for prob in assignment.scores(user = user):
-		points = points + prob.points
-
 	if assignment_type.grade_type == 'use':
 		for problem in db(db.problems.assignment == assignment.id).select():
 			if db(db.useinfo.div_id == problem.acid)(db.useinfo.sid == user.username).select().first():
 				points += 1
+	else:
+		for prob in assignment.scores(user = user):
+			points = points + prob.points
 
-	if assignment_type.grade_type == 'checkmark':
+	if assignment_type.grade_type in ['checkmark','use']:
 		#threshold grade
 		if points >= assignment.threshold:
 			points = assignment.points
