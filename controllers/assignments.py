@@ -24,19 +24,13 @@ def index():
 	if not student:
 		return redirect(URL('assignments','index'))
 
-	assignment_type = None
-	if 'atid' in request.vars:
-		assignment_type = db(db.assignment_types.id == int(request.vars.atid)).select().first()
 	assignment_types = db(db.assignment_types).select()
-
 
 	course = db(db.courses.id == auth.user.course_id).select().first()
 	assignments = db(db.assignments.id == db.grades.assignment)
 	assignments = assignments(db.assignments.course == course.id)
 	assignments = assignments(db.grades.auth_user == student.id)
 	assignments = assignments(db.assignments.released == True)
-	if assignment_type:
-		assignments = assignments(db.assignments.assignment_type == assignment_type.id)
 	assignments = assignments.select(
 		db.assignments.ALL,
 		db.grades.ALL,
@@ -58,7 +52,6 @@ def index():
 
 	return dict(
 		types = assignment_types,
-		assignment_type = assignment_type,
 		assignments = assignments,
 		student = student,
 		last_action = last_action,
