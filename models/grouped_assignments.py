@@ -2,6 +2,7 @@ class Grade(object):
 	def __init__(self):
 		self.total = 0
 		self.possible = 0
+		self.num_assignments = 0
 
 	def percent(self, points=None):
 		if points == None:
@@ -18,7 +19,8 @@ def student_grade(user=None, course=None, assignment_type=None, predictive=False
 	assignments = db(db.assignments.id == db.grades.assignment)
 	assignments = assignments(db.assignments.course == course.id)
 	assignments = assignments(db.grades.auth_user == user.id)
-	assignments = assignments(db.assignments.released == True)
+	if not predictive:
+		assignments = assignments(db.assignments.released == True)
 	if assignment_type:
 		assignments = assignments(db.assignments.assignment_type == assignment_type.id)
 	assignments = assignments.select(
@@ -26,10 +28,23 @@ def student_grade(user=None, course=None, assignment_type=None, predictive=False
 		db.grades.ALL,
 		orderby = db.assignments.name,
 		)
-
+	absolute_possible_points = 0
+	remaining_points = 0
 	for row in assignments:
-		grade.total += row.grades.score
-		grade.possible += row.assignments.points
+		if not predictive or (predictive and row.assignments.released):
+			grade.total += row.grades.score
+			grade.possible += row.assignments.points
+			grade.num_assignments += 1
+		if not predictive and not row.assignments.released:
+			remaining_points += row.assignments.points
+		absolute_possible_points += row.assignments.points
+
+	if predictive and grade.possible > 0:
+		grade.absolute = absolute_possible_points
+		grade.min = grade.total
+		grade.max = grade.total + remaining_points
+		grade.projected = grade.total + (remaining_points*(grade.total/grade.possible))
+
 	return grade
 
 db.define_table('assignment_types',

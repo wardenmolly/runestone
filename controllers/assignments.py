@@ -45,7 +45,7 @@ def index():
 		types = assignment_types,
 		assignments = assignments,
 		student = student,
-		grade = student_grade(user = student, course=course),
+		grade = student_grade(user = student, course=course, predictive=True),
 		last_action = last_action,
 		)
 
