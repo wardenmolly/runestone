@@ -24,8 +24,6 @@ def index():
 	if not student:
 		return redirect(URL('assignments','index'))
 
-	assignment_types = db(db.assignment_types).select()
-
 	course = db(db.courses.id == auth.user.course_id).select().first()
 	assignments = db(db.assignments.id == db.grades.assignment)
 	assignments = assignments(db.assignments.course == course.id)
@@ -36,6 +34,10 @@ def index():
 		db.grades.ALL,
 		orderby = db.assignments.name,
 		)
+
+	assignment_types = db(db.assignment_types).select()
+	for t in assignment_types:
+		t.grade = student_grade(user = student, course = course, assignment_type=t)
 
 	last_action = db(db.useinfo.sid == student.username)(db.useinfo.course_id == course.course_name).select(orderby=~db.useinfo.timestamp).first()
 

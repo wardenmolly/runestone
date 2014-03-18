@@ -8,6 +8,7 @@
 {{ for type in types: }}
 	{{ type_found = False }}
 	<h2>{{=type.name}}</h2>
+	<p class="grade"><strong>{{=type.grade.total}} points</strong> of {{=type.grade.possible}} points (or {{=type.grade.percent()}})</p>
 	{{for row in assignments:}}
 		{{ if row.assignments.assignment_type == type.id: }}
 			{{ type_found = True }}
