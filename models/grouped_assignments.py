@@ -31,7 +31,7 @@ def assignment_get_scores(assignment, problem=None, user=None, section_id=None):
 		grades = db(db.code.sid == db.auth_user.username)(db.code.acid == problem).select(
 			db.code.ALL,
 			db.auth_user.ALL,
-			orderby = db.code.sid,
+			orderby = db.code.sid|db.code.timestamp,
 			distinct = db.code.sid,
 			)
 		for g in grades:
