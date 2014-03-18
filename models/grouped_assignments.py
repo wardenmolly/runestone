@@ -30,12 +30,13 @@ def student_grade(user=None, course=None, assignment_type=None, predictive=False
 		)
 	absolute_possible_points = 0
 	remaining_points = 0
+	print assignments
 	for row in assignments:
 		if not predictive or (predictive and row.assignments.released):
 			grade.total += row.grades.score
 			grade.possible += row.assignments.points
 			grade.num_assignments += 1
-		if not predictive and not row.assignments.released:
+		if predictive and not row.assignments.released:
 			remaining_points += row.assignments.points
 		absolute_possible_points += row.assignments.points
 
@@ -43,7 +44,7 @@ def student_grade(user=None, course=None, assignment_type=None, predictive=False
 		grade.absolute = absolute_possible_points
 		grade.min = grade.total
 		grade.max = grade.total + remaining_points
-		grade.projected = grade.total + (remaining_points*(grade.total/grade.possible))
+		grade.projected = grade.total + remaining_points*(grade.total/grade.possible)
 
 	return grade
 
