@@ -37,23 +37,13 @@ def index():
 		orderby = db.assignments.name,
 		)
 
-	points_total = 0
-	points_possible = 0
-	for row in assignments:
-		points_total += row.grades.score
-		points_possible += row.assignments.points
-	if points_possible == 0:
-		points_possible = 1	# no rows; degenerate case
-	student.points_possible = points_possible
-	student.points_total = points_total
-	student.points_percentage = round((points_total/points_possible)*100)
-
 	last_action = db(db.useinfo.sid == student.username)(db.useinfo.course_id == course.course_name).select(orderby=~db.useinfo.timestamp).first()
 
 	return dict(
 		types = assignment_types,
 		assignments = assignments,
 		student = student,
+		grade = student_grade(user = student, course=course),
 		last_action = last_action,
 		)
 

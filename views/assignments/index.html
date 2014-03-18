@@ -1,6 +1,6 @@
 {{extend 'layout.html'}}
 <h1>{{=student.first_name}} {{=student.last_name}}</h1>
-<p class="grade"><strong>{{=student.points_total}} points</strong> of {{=student.points_possible}} points (or {{=student.points_percentage}}%)</p>
+<p class="grade"><strong>{{=grade.total}} points</strong> of {{=grade.possible}} points (or {{=grade.percent()}})</p>
 {{ if last_action: }}
 <p class="last_action"><em>Last Action: {{=last_action.timestamp}}</em></p>
 {{ pass }}

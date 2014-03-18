@@ -1,3 +1,37 @@
+class Grade(object):
+	def __init__(self):
+		self.total = 0
+		self.possible = 0
+
+	def percent(self, points=None):
+		if points == None:
+			points = self.total
+		if self.possible == 0:
+			return "0%"
+		percent = round((points/self.possible)*100)
+		return "%d%%" % (percent)
+
+def student_grade(user=None, course=None, assignment_type=None, predictive=False):
+	grade = Grade()
+	if not user or not course:
+		return grade
+	assignments = db(db.assignments.id == db.grades.assignment)
+	assignments = assignments(db.assignments.course == course.id)
+	assignments = assignments(db.grades.auth_user == user.id)
+	assignments = assignments(db.assignments.released == True)
+	if assignment_type:
+		assignments = assignments(db.assignments.assignment_type == assignment_type.id)
+	assignments = assignments.select(
+		db.assignments.ALL,
+		db.grades.ALL,
+		orderby = db.assignments.name,
+		)
+
+	for row in assignments:
+		grade.total += row.grades.score
+		grade.possible += row.assignments.points
+	return grade
+
 db.define_table('assignment_types',
 	Field('name','string'),
 	Field('grade_type', 'string', default="additive", requires=IS_IN_SET(['additive','checkmark','use'])),
