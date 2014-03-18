@@ -191,15 +191,16 @@ def update():
 			))
 	if problem_query_form.accepts(request,session,formname="problem_query_form"):		
 		if 'acid' in problem_query_form.vars:
-			acid = problem_query_form.vars['acid']
-			if db(db.problems.acid == acid)(db.problems.assignment == assignment.id).select().first():
-				session.flash = "ACID %s already exists for assignment." % (acid)
-				return redirect(URL('assignments','update')+'?id=%d' % (assignment.id))
-			db.problems.insert(
-				assignment = assignment.id,
-				acid = acid,
-				)
-			session.flash = "Added %s problems" % (acid)
+			count = 0
+			for acid in problem_query_form.vars['acid'].split(','):
+				acid = acid.replace(' ','')
+				if db(db.problems.acid == acid)(db.problems.assignment == assignment.id).select().first() == None:
+					count += 1
+					db.problems.insert(
+						assignment = assignment.id,
+						acid = acid,
+						)
+			session.flash = "Added %d problems" % (count)
 		else:
 			session.flash = "Didn't add any problems."
 		return redirect(URL('assignments','update')+'?id=%d' % (assignment.id))
