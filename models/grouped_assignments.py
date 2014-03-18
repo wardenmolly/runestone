@@ -1,6 +1,6 @@
 db.define_table('assignment_types',
 	Field('name','string'),
-	Field('grade_type', 'string', default="additive", requires=IS_IN_SET(['additive','checkmark'])),
+	Field('grade_type', 'string', default="additive", requires=IS_IN_SET(['additive','checkmark','use'])),
 	format = '%(names)s',
 	migrate='runestone_assignment_types.table',
 	)
@@ -83,6 +83,11 @@ def assignment_set_grade(assignment, user):
 	points = 0.0
 	for prob in assignment.scores(user = user):
 		points = points + prob.points
+
+	if assignment_type.grade_type == 'use':
+		for problem in db(db.problems.assignment == assignment.id).select():
+			if db(db.useinfo.div_id == problem.acid)(db.useinfo.sid == user.username).select().first():
+				points += 1
 
 	if assignment_type.grade_type == 'checkmark':
 		#threshold grade
