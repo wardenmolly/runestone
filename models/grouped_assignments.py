@@ -5,6 +5,15 @@ class Grade(object):
         self.possible = 0
         self.num_assignments = 0
 
+    def current(self):
+    	return 0
+
+    def projected(self):
+    	return 0
+
+    def max(self):
+    	return 0
+
     def percent(self, points=None):
         if points == None:
             points = self.total
@@ -16,7 +25,7 @@ class Grade(object):
     def projected(self):
         return self.percent()
 
-def student_grade(user=None, course=None, assignment_type=None, predictive=False):
+def student_grade(user=None, course=None, assignment_type=None):
     grade = Grade()
     if not user or not course:
         return grade
@@ -43,12 +52,6 @@ def student_grade(user=None, course=None, assignment_type=None, predictive=False
         if predictive and not row.assignments.released:
             remaining_points += row.assignments.points
         absolute_possible_points += row.assignments.points
-
-    if predictive and grade.possible > 0:
-        grade.absolute = absolute_possible_points
-        grade.min = grade.total
-        grade.max = grade.total + remaining_points
-        grade.projected = grade.total + remaining_points * (grade.total / grade.possible)
 
     return grade
 

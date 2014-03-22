@@ -37,7 +37,7 @@ def index():
 
 	assignment_types = db(db.assignment_types).select()
 	for t in assignment_types:
-		t.grade = student_grade(user = student, course = course, assignment_type=t, predictive=True)
+		t.grade = student_grade(user = student, course = course, assignment_type=t)
 
 	last_action = db(db.useinfo.sid == student.username)(db.useinfo.course_id == course.course_name).select(orderby=~db.useinfo.timestamp).first()
 
