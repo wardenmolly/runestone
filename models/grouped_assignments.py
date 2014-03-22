@@ -7,7 +7,10 @@ class Grade(object):
         self.weight = 1
 
     def current(self):
-    	return 0
+    	if self.possible == 0:
+    		return 0
+    	points = float(self.points)/self.possible
+    	return points*self.weight
 
     def projected(self):
     	return 0
@@ -37,7 +40,7 @@ def student_grade(user=None, course=None, assignment_type=None):
     if assignment_type.weight != None:
     	grade.weight = assignment_type.weight
     if assignment_type.points_possible != None:
-    	grade.possible = assignment_type.weight 
+    	grade.possible = assignment_type.points_possible 
 
     assignments = db(db.assignments.id == db.grades.assignment)
     assignments = assignments(db.assignments.course == course.id)

@@ -8,7 +8,10 @@
 {{ for type in types: }}
 	{{ type_found = False }}
 	<h2>{{=type.name}}</h2>
-	<p class="grade"><strong>{{=type.grade.total}} points</strong> of {{=type.grade.possible}} points (or {{=type.grade.percent()}})</p>
+	<p class="grade"><strong>{{=type.grade.points}} points</strong> of {{=type.grade.total}} points (or {{=type.grade.percent()}})</p>
+	<p class="grade">Current Points: {{=type.grade.current()}}</p>
+	<p class="grade">Projected Points: {{=type.grade.projected()}}</p>
+	<p class="grade">Max Points Possible: {{=type.grade.max()}}</p>
 	{{for row in assignments:}}
 		{{ if row.assignments.assignment_type == type.id: }}
 			{{ type_found = True }}

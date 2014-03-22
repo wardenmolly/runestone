@@ -309,9 +309,6 @@ def detail():
 			arg_str += "&acid=%s" % acid
 		return arg_str
 
-	print "***** DEBUGGINGIGNIGNG ******"
-	print student
-
 	return dict(
 		assignment = assignment,
 		problems = problems,
