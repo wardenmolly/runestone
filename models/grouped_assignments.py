@@ -27,15 +27,13 @@ class Grade(object):
 
 def student_grade(user=None, course=None, assignment_type=None):
     grade = Grade()
-    if not user or not course:
+    if not user or not course or not assignment_type:
         return grade
     assignments = db(db.assignments.id == db.grades.assignment)
     assignments = assignments(db.assignments.course == course.id)
     assignments = assignments(db.grades.auth_user == user.id)
-    if not predictive:
-        assignments = assignments(db.assignments.released == True)
-    if assignment_type:
-        assignments = assignments(db.assignments.assignment_type == assignment_type.id)
+    assignments = assignments(db.assignments.released == True)
+    assignments = assignments(db.assignments.assignment_type == assignment_type.id)
     assignments = assignments.select(
         db.assignments.ALL,
         db.grades.ALL,
