@@ -1,9 +1,10 @@
 class Grade(object):
     """Grade of one user for either a collection of assignments, or for the whole course"""
     def __init__(self):
+        self.points = 0
         self.total = 0
         self.possible = 0
-        self.num_assignments = 0
+        self.weight = 1
 
     def current(self):
     	return 0
@@ -14,12 +15,14 @@ class Grade(object):
     def max(self):
     	return 0
 
-    def percent(self, points=None):
+    def percent(self, points=None, total=None):
         if points == None:
-            points = self.total
-        if self.possible == 0:
+            points = self.points
+        if total == None:
+        	total = self.total
+        if total == 0:
             return "0%"
-        percent = round((points / self.possible) * 100)
+        percent = round((points / total) * 100)
         return "%d%%" % (percent)
 
     def projected(self):
@@ -29,6 +32,13 @@ def student_grade(user=None, course=None, assignment_type=None):
     grade = Grade()
     if not user or not course or not assignment_type:
         return grade
+
+    # Check assignment type weight before setting it incase its None
+    if assignment_type.weight != None:
+    	grade.weight = assignment_type.weight
+    if assignment_type.points_possible != None:
+    	grade.possible = assignment_type.weight 
+
     assignments = db(db.assignments.id == db.grades.assignment)
     assignments = assignments(db.assignments.course == course.id)
     assignments = assignments(db.grades.auth_user == user.id)
@@ -39,18 +49,10 @@ def student_grade(user=None, course=None, assignment_type=None):
         db.grades.ALL,
         orderby=db.assignments.name,
         )
-    absolute_possible_points = 0
-    remaining_points = 0
     # print assignments
     for row in assignments:
-        if not predictive or (predictive and row.assignments.released):
-            grade.total += row.grades.score
-            grade.possible += row.assignments.points
-            grade.num_assignments += 1
-        if predictive and not row.assignments.released:
-            remaining_points += row.assignments.points
-        absolute_possible_points += row.assignments.points
-
+	    grade.points += row.grades.score
+	    grade.total += row.assignments.points
     return grade
 
 db.define_table('assignment_types',
