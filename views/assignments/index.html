@@ -1,9 +1,24 @@
 {{extend 'layout.html'}}
 <h1>{{=student.first_name}} {{=student.last_name}}</h1>
-
-{{ if last_action: }}
-<p class="last_action"><em>Last Action: {{=last_action.timestamp}}</em></p>
-{{ pass }}
+<div class="row">
+	<div class="col-md-8">
+		{{ if last_action: }}
+		<p class="last_action"><em>Last Action: {{=last_action.timestamp}}</em></p>
+		{{ pass }}
+	</div>
+	<div class="col-md-4" style="text-align:center;">
+		<div class="row">
+			<div class="col-md-4">Current Points</div>
+			<div class="col-md-4">Projected Points</div>
+			<div class="col-md-4">Maximum Points</div>
+		</div>
+		<div class="row">
+			<div class="col-md-4"><span class="hidden">Current Points:</span> {{=grade.current()}}</div>
+			<div class="col-md-4"><span class="hidden">Current Points:</span> {{=grade.projected()}}</div>
+			<div class="col-md-4"><span class="hidden">Current Points:</span> {{=grade.max()}}</div>
+		</div>
+	</div>
+</div>
 <div class="panel-group" id="assignments">
 {{ for type in types: }}
 	<h2>{{=type.name}}</h2>
