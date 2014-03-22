@@ -13,10 +13,19 @@ class Grade(object):
     	return points*self.weight
 
     def projected(self):
-    	return 0
+    	if self.total == 0:
+    		return 0
+    	points = float(self.points)/self.total
+    	return points*self.weight
 
     def max(self):
-    	return 0
+    	if self.possible == 0:
+    		return 0
+    	remaining = self.possible - self.total
+    	if remaining < 0:
+    		remaining = 0
+    	points = (self.points + remaining)/self.possible
+    	return points * self.weight
 
     def percent(self, points=None, total=None):
         if points == None:
@@ -27,9 +36,6 @@ class Grade(object):
             return "0%"
         percent = round((points / total) * 100)
         return "%d%%" % (percent)
-
-    def projected(self):
-        return self.percent()
 
 def student_grade(user=None, course=None, assignment_type=None):
     grade = Grade()
