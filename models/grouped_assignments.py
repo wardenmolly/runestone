@@ -155,7 +155,8 @@ def assignment_set_grade(assignment, user):
                 points += 1
     else:
         for prob in assignment.scores(user=user):
-            points = points + prob.points
+            if prob.points:
+    	        points = points + prob.points
 
     if assignment_type.grade_type in ['checkmark', 'use']:
         # threshold grade
