@@ -55,6 +55,8 @@ def student_grade(user=None, course=None, assignment_type=None, predictive=False
 db.define_table('assignment_types',
     Field('name', 'string'),
     Field('grade_type', 'string', default="additive", requires=IS_IN_SET(['additive', 'checkmark', 'use'])),
+    Field('weight', 'double', default=1.0),
+    Field('points_possible','integer', default=0)
     format='%(names)s',
     migrate='runestone_assignment_types.table',
     )
