@@ -36,7 +36,7 @@ For this week you have the following graded activities:
    * Read *The Success of Open Source*, Chapter 3
    * :ref:`Reading response 9 <response_9>`
 
-#. Do Problem Set 9: (coming soon)
+#. Do Problem Set 9:
 
    * See /ps9 folder distributed via Bitbucket.org
 
