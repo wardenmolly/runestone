@@ -21,15 +21,15 @@ For this week you have the following graded activities:
 
    * Before Tuesday's class:  
       * :ref:`python Classes <classes_chap>`  
-      * Review slides ``Classes`` in ctools resources/Slides (coming soon)
-      * get the code file lectures/session20.py via Bitbucket.org (coming soon)
+      * Review slides ``Classes`` in ctools resources/Slides
+      * get the code file lectures/session20.py via Bitbucket.org
          * ``git pull upstream master``
    
    * Before Thursday's class:
       * Review slides ``oAuth and the Facebook API`` in cTools resources/Slides (coming soon)
       * get the code file lectures/session21.py via Bitbucket.org (coming soon)
          * ``git pull upstream master``
-      * answer :ref:`questions about session21.py <session21>`
+      * answer :ref:`questions about session21.py <session21>` (coming soon)
 
 #. Turn in the reading response, by 8 PM the night before your registered section meets.
 
@@ -46,25 +46,27 @@ For this week you have the following graded activities:
 Reading Response 9
 ------------------
 
+The linux project uses git to organize the work of all the contributors. Take a look at the `linux project on github <https://github.com/torvalds/linux>`_, a site that's very similar to bitbucket but with a slightly different user interface. Take a look at the recent commits. Click around to see how many people have made contributions recently. Also check out the github page for `Runestone <https://github.com/bnmnetp/runestone>`_ and for `my fork of it <https://github.com/presnick/runestone>`_ to make this online textbook. Report on something interesting you found from exploring these public git repositories.
   
-.. actex:: rr_8_1
+.. actex:: rr_9_1
 
    # Fill in your response in between the triple quotes
    s = """
 
    """
 
+Brooks make an argument that communication complexity grows with the square of the number of people participating in a project. Why would that be true? And what are the things you could do in organizing a project to make it not be true?
 
-.. actex:: rr_8_2
+.. actex:: rr_9_2
 
    # Fill in your response in between the triple quotes
    s = """
 
    """
 
-What material from the chapter would you like to discuss in class?
+What other material from the chapter would you like to discuss in class?
 
-.. actex:: rr_8_3
+.. actex:: rr_9_3
 
    # Fill in your response in between the triple quotes
    s = """
@@ -78,35 +80,3 @@ What material from the chapter would you like to discuss in class?
 Session 21 prep (coming soon)
 -----------------------------
 
-Explain the output produced by the code on line 10 of session19.py
-
-.. actex:: session20_0
-
-   # Fill in your response in between the triple quotes
-   s = """
-
-   """
-
-Did you have any trouble getting a flickr key?
-  
-.. actex:: session19_1
-
-   # Fill in your response in between the triple quotes
-   s = """
-
-   """
-   
-What's the URL for one of the photos that opened in your browser when you ran session19.py?
-  
-.. actex:: session19_2
-
-   # Fill in your response below
-   url  = ''
-   print url
-
-Write code to pick out the "owner" of the third photo retrieved in the flickrdemo function. (It's OK to modify the flicrdemo function to do that. Test your code by running it at your command prompt and paste the relevant line or lines of code here.)
-  
-.. actex:: session19_3
-
-   # Paste your code here
-   
