@@ -1,41 +1,85 @@
+def pct2pts(x):
+    return "%.2f" % (100*x)
+
 class Grade(object):
     """Grade of one user for either a collection of assignments, or for the whole course"""
     def __init__(self):
-        self.points = 0
-        self.total = 0
-        self.possible = 0
         self.weight = 1
-
+        self.scores = []
+        self.assignment_scores = []
+    
+    def points(self):
+        self.scores.sort()
+        if len(self.scores) > self.assignments_count - self.assignments_dropped:
+            # too many grades; drop lowest
+            return sum(self.scores[self.assignments_dropped:])
+        else:
+            return sum(self.scores)
+    
+    def assignment_points(self):
+        self.assignment_scores.sort()
+        if len(self.scores) > self.assignments_count - self.assignments_dropped:
+            # too many grades; drop lowest assignment
+            return sum(self.assignment_scores[self.assignments_dropped:])
+        else:
+            return sum(self.assignment_scores)
+            
+    
     def current(self):
-    	if self.possible == 0:
-    		return 0
-    	points = float(self.points)/self.possible
-    	return points*self.weight
+        if self.possible == 0:
+            return 0
+        points = float(self.points())/self.possible
+        return points*self.weight
 
     def projected(self):
-    	if self.total == 0:
-    		return 0
-    	points = float(self.points)/self.total
-    	return points*self.weight
+        if self.assignment_points() == 0:
+            return 0
+        points = float(self.points())/self.assignment_points()
+        return points*self.weight
+
+    def points_after_drops(self):
+        self.scores.sort()
+        return sum(self.scores[self.assignments_dropped:])
+    def assignment_points_after_drops(self):
+        self.assignment_scores.sort()
+        return sum(self.assignment_scores[self.assignments_dropped:])
 
     def max(self):
-    	if self.possible == 0:
-    		return 0
-    	remaining = self.possible - self.total
-    	if remaining < 0:
-    		remaining = 0
-    	points = (self.points + remaining)/self.possible
-    	return points * self.weight
+        # this is more complicated because of the "best k of n" scoring
+        
+        if self.possible == 0:
+            return 0
+        remaining = self.possible - self.assignment_points_after_drops()
+        if remaining < 0:
+            remaining = 0
+        points = (self.points_after_drops() + remaining)/self.possible
+        return points * self.weight
 
     def percent(self, points=None, total=None):
         if points == None:
-            points = self.points
+            points = self.points()
         if total == None:
-        	total = self.total
+            total = self.assignment_points()
         if total == 0:
             return "0%"
         percent = round((points / total) * 100)
         return "%d%%" % (percent)
+
+class CourseGrade(Grade):
+    def __init__(self):
+        super(CourseGrade, self ).__init__()
+        self.points = 0
+        self.projected_pts = 0
+        self.max_pts = 0
+        
+    def current(self):
+        return self.points
+    
+    def projected(self):
+        return self.projected_pts
+    
+    def max(self):
+        return self.max_pts
 
 def student_grade(user=None, course=None, assignment_type=None):
     grade = Grade()
@@ -44,9 +88,13 @@ def student_grade(user=None, course=None, assignment_type=None):
 
     # Check assignment type weight before setting it incase its None
     if assignment_type.weight != None:
-    	grade.weight = assignment_type.weight
+        grade.weight = assignment_type.weight
     if assignment_type.points_possible != None:
-    	grade.possible = assignment_type.points_possible 
+        grade.possible = assignment_type.points_possible
+    if assignment_type.assignments_count:
+        grade.assignments_count = int(assignment_type.assignments_count)
+    if assignment_type.assignments_dropped:
+        grade.assignments_dropped = int(assignment_type.assignments_dropped) 
 
     assignments = db(db.assignments.id == db.grades.assignment)
     assignments = assignments(db.assignments.course == course.id)
@@ -60,8 +108,8 @@ def student_grade(user=None, course=None, assignment_type=None):
         )
     # print assignments
     for row in assignments:
-	    grade.points += row.grades.score
-	    grade.total += row.assignments.points
+        grade.scores.append(row.grades.score)
+        grade.assignment_scores.append(row.assignments.points)
     return grade
 
 db.define_table('assignment_types',
@@ -69,6 +117,8 @@ db.define_table('assignment_types',
     Field('grade_type', 'string', default="additive", requires=IS_IN_SET(['additive', 'checkmark', 'use'])),
     Field('weight', 'double', default=1.0),
     Field('points_possible','integer', default=0),
+    Field('assignments_count', default=0),
+    Field('assignments_dropped', default=0),
     format='%(names)s',
     migrate='runestone_assignment_types.table',
     )
@@ -156,7 +206,7 @@ def assignment_set_grade(assignment, user):
     else:
         for prob in assignment.scores(user=user):
             if prob.points:
-    	        points = points + prob.points
+                points = points + prob.points
 
     if assignment_type.grade_type in ['checkmark', 'use']:
         # threshold grade

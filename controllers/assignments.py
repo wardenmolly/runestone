@@ -35,13 +35,13 @@ def index():
 		orderby = db.assignments.name,
 		)
 
-	grade = Grade()
+	grade = CourseGrade()
 	assignment_types = db(db.assignment_types).select(db.assignment_types.ALL, orderby=db.assignment_types.name)
 	for t in assignment_types:
 		t.grade = student_grade(user = student, course = course, assignment_type=t)
-		grade.points += t.grade.points*t.grade.weight
-		grade.total += t.grade.total*t.grade.weight
-		grade.possible += t.grade.possible*t.grade.weight
+		grade.points += t.grade.current()
+		grade.projected_pts += t.grade.projected() 
+		grade.max_pts += t.grade.max() 
 	last_action = db(db.useinfo.sid == student.username)(db.useinfo.course_id == course.course_name).select(orderby=~db.useinfo.timestamp).first()
 
 	return dict(
