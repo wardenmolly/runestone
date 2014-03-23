@@ -9,6 +9,7 @@ Assignments
 .. toctree::
    :maxdepth: 2
 
+   Assignments/week10.rst
    Assignments/week9.rst
    Assignments/week8.rst
    Assignments/week7.rst
@@ -173,6 +174,14 @@ String Formatting
    
    StringFormatting/interpolation.rst
 
+Defining Classes
+::::::::::::::::
+
+.. toctree::
+   :maxdepth: 2
+   
+   Classes/classesintro.rst
+   Classes/fractions.rst
 
 .. ignore these for now
     Recursion
@@ -186,14 +195,6 @@ String Formatting
        Recursion/introexercises.rst
     
     
-    Defining Classes
-    ::::::::::::::::
-    
-    .. toctree::
-       :maxdepth: 2
-    
-       Classes/classesintro.rst
-       Classes/fractions.rst
     
     Labs
     ::::
