@@ -53,8 +53,8 @@ Objects Revisited
 
 In Python, every value is actually an object. Whether it be a dictionary, a list, or even an integer, they are all objects.  Programs manipulate those objects either by performing
 computation with them or by asking them to perform methods.  To be more specific, we say that an object has
-a **state** and a collection of **methods** that it can perform.  The state of an object represents those things
-that the object knows about itself.  For example, each list has state, the items in the list. And it has methods, such as append and pop, which can operate on the list to change its state or do something else useful.
+a **state** and a collection of **methods** that it can perform. (More about **methods** below.) The state of an object represents those things
+that the object knows about itself.  For example, each list has state, the items in the list. And it has methods, such as append and pop, which can operate on the list to change its state or do something else useful. 
 
 
 .. index:: compound data type
@@ -209,9 +209,10 @@ To get a clearer understanding of what happens when instantiating a new instance
 
     print(p is q)
     
-At Step 6, you can see that Point has been bound to an object representing the point class, but there are not yet any instances. The execution of line 9, ``p = Point()``, occurs at steps 7-9. First, at step 7, you can see that a blank instance of the class has been created, and is passed as the first (and only parameter) to the ``__init__`` method. That method's code is executed, with the variable self bound to that instance. At steps 8 and 9, two instance variables are filled in: x and y are both set to 0. Nothing is returned from the __init__ method, but the point object itself is returned from the call to ``Point()``. Thus, at step 10,  p is bound to the new point that was created and initialized.
+At Step 6 in the codelens, you can see that Point has been bound to an object representing the point class, but there are not yet any instances. The execution of line 9, ``p = Point()``, occurs at steps 7-9. First, at step 7, you can see that a blank instance of the class has been created, and is passed as the first (and only parameter) to the ``__init__`` method. That method's code is executed, with the variable self bound to that instance. At steps 8 and 9, two instance variables are filled in: x and y are both set to 0. Nothing is returned from the __init__ method, but the point object itself is returned from the call to ``Point()``. Thus, at step 10,  p is bound to the new point that was created and initialized.
 
-Skipping ahead, by the time we get to Step 16, p and q are each bound to different points. Even though both have x and y instance variables set to 0, they are different objects. Thus ``p is q`` evaluates to False.
+Skipping ahead, by the time we get to Step 16, p and q are each bound to different points. Even though both have x and y instance variables set to 0, they are *different objects*. Thus ``p is q`` evaluates to False.
+
 
 Improving our Constructor
 ------------------------- 
@@ -219,7 +220,7 @@ Improving our Constructor
 Our constructor so far can only create points at location ``(0,0)``.  To create a point at position (7, 6) requires that we
 provide some additional capability for the user to pass information to the constructor.  Since constructors are simply specially named functions, we can use parameters (as we've seen before) to provide the specific information. 
     
-We can make our class constructor more general by putting extra parameters into
+We can make our class constructor more generally usable by putting extra parameters into
 the ``__init__`` method, as shown in this example.
 
 .. sourcecode:: python
@@ -258,9 +259,11 @@ We can group together the sensible operations, and the kinds of data
 they apply to, and each instance of the class can have its own state.       
           
 A **method** behaves like a function but it is invoked on a specific
-instance.  For example, with a list bound to variable L, ``L.append(7)`` calls the function append, with the list itself as the first parameter and 7 as the second parameter.   Methods are accessed using dot notation.  
+instance.  For example, with a list bound to variable L, ``L.append(7)`` calls the function append, with the list itself as the first parameter and 7 as the second parameter.   Methods are accessed using dot notation. This is why ``L.append(7)`` has 2 parameters even though you may think it only has one: the list stored in the variable ``L`` is the first.  
 
-Let's add two simple methods to allow a point to give us information about its state.  The ``getX`` method, when invoked, will return the value of the x coordinate.  The implementation of this method is straight forward since we already know how
+Let's add two simple methods to allow a point to give us information about its state.  The ``getX`` method, when invoked, will return the value of the x coordinate.
+
+The implementation of this method is straight forward since we already know how
 to write functions that return values.  One thing to notice is that even though the ``getX`` method does not need any other parameter information to do its work, there is still one formal parameter, ``self``.  As we stated earlier, all methods defined in a class that operate on objects of that class will have ``self`` as their first parameter.  Again, this serves as reference to the object itself which in turn gives access to the state data inside the object.
 
 .. activecode:: chp13_classes4
@@ -284,7 +287,7 @@ to write functions that return values.  One thing to notice is that even though 
     print(p.getX())
     print(p.getY())
 
-Note that the ``getX`` method simply returns the value of ``self.x`` from the object itself.  In other words, the implementation of the method is to go to the state of the object itself and get the value of ``x``.  Likewise, the ``getY`` method looks the same.
+Note that the ``getX`` method simply returns the value of ``self.x`` from the object itself.  In other words, the implementation of the method is to go to the state of the object itself and get the value of ``x``.  Likewise, the ``getY`` method looks almost the same.
 
 Let's add another method, ``distanceFromOrigin``, to see better how methods
 work.  This method will again not need any additional information to do its work.
@@ -315,15 +318,15 @@ It will perform a more complex task.
     print(p.distanceFromOrigin())
 
 
-Notice that the caller of ``distanceFromOrigin`` does not explicitly 
-supply an argument to match the ``self`` parameter.  This is true of all method calls. The definition will always
+Notice that the call of ``distanceFromOrigin`` does not *explicitly* 
+supply an argument to match the ``self`` parameter.  This is true of all method calls. The definition will always seem to
 have one additional parameter as compared to the invocation.  
 
     
 Objects as Arguments and Parameters
 -----------------------------------
 
-You can pass an object as a argument in the usual way.
+You can pass an object as a argument, in the usual way.
 
 Here is a simple function called ``distance`` involving our new ``Point`` objects.  The job of this function is to figure out the 
 distance between two points.
@@ -484,7 +487,7 @@ Instances as Return Values
 --------------------------
 
 Functions and methods can return objects.  This is actually nothing new since everything in Python is an object and we have
-been returning values for quite some time.  The difference here is that we want to have the method create an object using
+been returning values for quite some time. (You can also have lists or tuples of object instances, etc.)  The difference here is that we want to have the method create an object using
 the constructor and then return it as the value of the method.
 
     
