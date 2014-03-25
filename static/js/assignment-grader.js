@@ -87,6 +87,9 @@ function getGradingModal(element, acid, studentId){
 }
 
 function getMassGradingModal(acid){
+	// get rid of any other modals -- incase they are just hanging out.
+	jQuery('.modal.modal-mass-grader:not(#mass-grade-modal-template .modal-mass-grader)').remove();
+
 	var modal_markup = jQuery('#mass-grade-modal-template').html();
 	jQuery('body').append(modal_markup);
 	var modal = jQuery('.modal.modal-mass-grader:not(#mass-grade-modal-template .modal-mass-grader)');
@@ -103,8 +106,16 @@ function getMassGradingModal(acid){
 				csv:jQuery('textarea',modal).val()
 			},
 			success:function(data){
+				if(!data['scores'] || data['scores'].length < 1){
+					return False;
+				}
 				alert("saved");
-				// something smart
+				for(indx in data['scores']){
+					var score = data['scores'][indx];
+					var item = jQuery('.gradable[data-student-id="'+score['username']+'"][data-acid="'+score['acid']+'"]').parents('li:first');
+					jQuery('.grade',item).html(score['grade']);
+					jQuery('.comment',item).html(score['comment']);
+				}
 			}
 		});
 	});
