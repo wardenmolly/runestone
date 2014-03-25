@@ -6,16 +6,17 @@
 		<p class="last_action"><em>Last Action: {{=last_action.timestamp}}</em></p>
 		{{ pass }}
 	</div>
-	<div class="col-md-4" style="text-align:center;">Course Points
-		<div class="row">
-			<div class="col-md-4">Current</div>
-			<div class="col-md-4">Projected</div>
-			<div class="col-md-4">Max Attainable</div>
+	<div class="col-md-4">
+		<h3>Course Points</h3>
+		<div class="row" style="text-align:center;">
+			<div class="col-md-6"><strong>Projected</strong></div>
+			<div class="col-md-3">Current</div>
+			<div class="col-md-3">Maximum</div>
 		</div>
-		<div class="row">
-			<div class="col-md-4"><span class="hidden">Current Points:</span> {{=pct2pts(grade.current())}}</div>
-			<div class="col-md-4"><span class="hidden">Current Points:</span> {{=pct2pts(grade.projected())}}</div>
-			<div class="col-md-4"><span class="hidden">Current Points:</span> {{=pct2pts(grade.max())}}</div>
+		<div class="row" style="text-align:center;">
+			<div class="col-md-6"><strong><span class="hidden">Projected Points:</span> {{=pct2pts(grade.projected())}}</strong></div>
+			<div class="col-md-3"><span class="hidden">Current Points:</span> {{=pct2pts(grade.current())}}</div>
+			<div class="col-md-3"><span class="hidden">Max Points:</span> {{=pct2pts(grade.max())}}</div>
 		</div>
 	</div>
 </div>
@@ -64,9 +65,9 @@
 		</div>
 		<div class="col-md-4" style="text-align:center;">
 			<div class="row">
-				<div class="col-md-4"><span class="hidden">Current Points:</span> {{=pct2pts(type.grade.current())}}</div>
-				<div class="col-md-4"><span class="hidden">Current Points:</span> {{=pct2pts(type.grade.projected())}}</div>
-				<div class="col-md-4"><span class="hidden">Current Points:</span> {{=pct2pts(type.grade.max())}}</div>
+				<div class="col-md-6"><strong><span class="hidden">Projected Points:</span> {{=pct2pts(type.grade.projected())}}</strong></div>
+				<div class="col-md-3"><span class="hidden">Current Points:</span> {{=pct2pts(type.grade.current())}}</div>
+				<div class="col-md-3"><span class="hidden">Max Points:</span> {{=pct2pts(type.grade.max())}}</div>
 			</div>
 		</div>
 	</div>
