@@ -324,6 +324,7 @@ def detail():
 		selected_acid = acid,
 		course_id = auth.user.course_name,
 		gradingUrl = URL('assignments', 'problem'),
+		massGradingURL = URL('assignments', 'mass_grade_problem'),
 		)
 
 import json
@@ -388,6 +389,9 @@ def problem():
 			'comment':q.code.comment,
 			}
 	return json.dumps(res)
+
+def mass_grade_problem():
+	return json.dumps({"success":True})
 
 def migrate_to_scores():
 	""" Temp command to migrate db.code grades to db.score table """
