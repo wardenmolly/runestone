@@ -9,6 +9,7 @@ Assignments
 .. toctree::
    :maxdepth: 2
 
+   Assignments/week11.rst
    Assignments/week10.rst
    Assignments/week9.rst
    Assignments/week8.rst
@@ -182,6 +183,14 @@ Defining Classes
    
    Classes/classesintro.rst
    Classes/fractions.rst
+
+List Comprehensions
+:::::::::::::::::::
+
+.. toctree::
+   :maxdepth: 2
+   
+   Sequences/listcomprehensions.rst
 
 .. ignore these for now
     Recursion

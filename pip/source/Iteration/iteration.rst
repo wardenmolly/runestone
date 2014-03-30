@@ -331,6 +331,8 @@ list (0, 1, 2, etc.), so that we can assign a new value to the position in the l
      for item in alist:
         blist.append(item+5)
      print(blist)
+
+.. _accum_pattern:
       
 The Accumulator Pattern
 =======================
