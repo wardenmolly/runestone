@@ -47,7 +47,7 @@ Reading Response 10
 
 The chapter describes forking as something that could fragment developer efforts and thus slow down progress of a project. If you tried to make a "fork" of Linux today, would it be technically feasible to do so? What do you think would happen?
   
-.. actex:: rr_8_1
+.. actex:: rr_10_1
 
    # Fill in your response in between the triple quotes
    s = """
@@ -56,7 +56,7 @@ The chapter describes forking as something that could fragment developer efforts
 
 Pages 116-119 describes the genesis of "Bitkeeper", which later was replaced by git. Why would the promise of switching to use something like git have helped to defuse a potential forking of the Linux project? 
 
-.. actex:: rr_8_2
+.. actex:: rr_10_2
 
    # Fill in your response in between the triple quotes
    s = """
@@ -65,7 +65,7 @@ Pages 116-119 describes the genesis of "Bitkeeper", which later was replaced by 
 
 What material from the chapter would you like to discuss in class?
 
-.. actex:: rr_8_3
+.. actex:: rr_10_3
 
    # Fill in your response in between the triple quotes
    s = """
