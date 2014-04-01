@@ -105,7 +105,7 @@ Filter
 
 Now consider another common pattern: going through a list and keeping only those items that meet certain criteria. This is called a filter.
 
-.. activecode:: listcomp_5:
+.. activecode:: listcomp_5
 
    def keep_evens(nums):
       new_list = []
@@ -118,7 +118,7 @@ Now consider another common pattern: going through a list and keeping only those
 
 Again, this pattern of computation is so common that python offers a more compact and general way to do it, the ``filter`` function. filter takes two arguments, a function and a sequence. The function takes one item and return True if the item should. It is automatically called for each item in the sequence. You don't have to initialize an accumulator or iterate with a for loop.
 
-.. activecode:: listcomp_6:
+.. activecode:: listcomp_6
 
    def keep_odds(nums):
       new_list = filter(lambda num: num % 2 == 1, nums)
@@ -151,7 +151,7 @@ Just as in a regular for loop, the part of the statement ``for value in things``
 
 The ``if`` clause of a list comprehension can be used to do a filter operation. To perform a pure filter operation, the expression can be simply the variable that is bound to each item. For example, the following list comprehension will keep only the positive numbers from the original list.
 
-.. activecode:: listcomp_8:
+.. activecode:: listcomp_8
 
    def keep_evens(nums):
       new_list = [num for num in nums if num % 2 == 0]
@@ -161,7 +161,7 @@ The ``if`` clause of a list comprehension can be used to do a filter operation. 
 
 You can also combine map and filter operations by chaining them together, or with a single list comprehension.
 
-.. activecode:: listcomp_9:
+.. activecode:: listcomp_9
 
    things = [3, 4, 6, 7, 0, 1
    #chaining together filter and map:
@@ -203,7 +203,7 @@ Another common form of the accumulator pattern is to combine or summarize all th
 
 For example, we can count the items in a list, or add them all up.
 
-.. activecode:: listcomp_10:
+.. activecode:: listcomp_10
 
    nums = [3, 4, 6, 7, 0, 1]
    
@@ -219,7 +219,7 @@ For example, we can count the items in a list, or add them all up.
    
 These particular operations, counting and summing, are so commonly performed that python provides built-in functions, ``len`` and ``sum``
 
-.. activecode:: listcomp_11:
+.. activecode:: listcomp_11
 
    nums = [3, 4, 6, 7, 0, 1]
 
@@ -230,7 +230,7 @@ There's also a built-in function ``max`` that works analogously, aggreating a li
   
 Another common accumulation that combines all the elements is to take a list of strings and concatenate them all together, separating them with some separator such as a comma or, in the example below, --.
 
-.. activecode:: listcomp_12:
+.. activecode:: listcomp_12
 
    strings = ["Hello", "hi", "bye", "wonderful"]
    
@@ -241,7 +241,7 @@ Another common accumulation that combines all the elements is to take a list of 
    
 Again, this way of combining lists of strings is so common that python has a built-in way to do it, in this case the ``join`` method. It's invoked in a slightly strange way because join is a method of string class, not a method of the list class. The string to invoke the method on is the separator to be used in between each of the elements. The list of strings that are to be concatenated together is passed as a parameter.
 
-.. activecode:: listcomp_13:
+.. activecode:: listcomp_13
 
    strings = ["Hello", "hi", "bye", "wonderful"]
    
@@ -252,7 +252,7 @@ More generally, python provides a function ``reduce`` which takes a list and pro
 
 All of the specific accumulations that you've seen before can be expressed compactly using the ``reduce`` function, though it may take a little decoding to understand exactly what they do.
 
-.. activecode:: listcomp_14:
+.. activecode:: listcomp_14
 
    nums = [3, 4, 6, -7, 0, 1]
    
@@ -277,7 +277,7 @@ All of the specific accumulations that you've seen before can be expressed compa
    
 Of course, it's easier to understand code using the more specific functions ``len, sum, max, and join``, so you should use those rather than ``reduce`` whenever you can. But sometimes you want to make a custom aggregator for which there is no built-in. For example, from here's a solution to a question from the Winter 2014 midterm exam.
 
-.. activecode:: listcomp_15:
+.. activecode:: listcomp_15
 
    # manual accumulation         
    def maxabs(nums):
