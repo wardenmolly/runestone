@@ -192,6 +192,15 @@ List Comprehensions
    :maxdepth: 2
    
    Sequences/listcomprehensions.rst
+   
+Sorting Class Instances
+:::::::::::::::::::::::
+
+.. toctree::
+   :maxdepth: 2
+   
+   Sort/sorting_instances.rst
+
 
 .. ignore these for now
     Recursion
