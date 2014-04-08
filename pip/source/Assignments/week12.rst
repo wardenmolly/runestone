@@ -36,7 +36,7 @@ For this week you have the following graded activities:
 
 #. Do Problem Set 11:
 
-   * See /ps11 folder distributed via Bitbucket.org (coming soon)
+   * See /ps11 folder distributed via Bitbucket.org
    * See PS11 and final project instructions document in cTools resource section, Resources>Problem Sets>Final Project Instructions
    
 
