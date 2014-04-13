@@ -9,6 +9,7 @@ Assignments
 .. toctree::
    :maxdepth: 2
 
+   Assignments/week13.rst
    Assignments/week12.rst
    Assignments/week11.rst
    Assignments/week10.rst
@@ -201,45 +202,14 @@ Sorting Class Instances
    
    Sort/sorting_instances.rst
 
+Defining Test Cases
+:::::::::::::::::::
 
-.. ignore these for now
-    Recursion
-    :::::::::
-    
-    .. toctree::
-       :maxdepth: 2
-    
-       Recursion/recursionsimple.rst
-       Recursion/graphical.rst
-       Recursion/introexercises.rst
-    
-    
-    
-    Labs
-    ::::
-    
-    .. toctree::
-       :maxdepth: 1
-    
-       Labs/astronomylab.rst
-       Labs/lab03_01.rst
-       Labs/lab04_01.rst
-       Labs/lab04_01a.rst
-       Labs/lab12_01.rst
-       Labs/lab12_02.rst
-       Labs/montepi.rst
-       Labs/pythonshell.rst
-       Labs/sequencelab.rst
-       Labs/sinlab.rst
-    
-    Appendices
-    ::::::::::
-    
-    .. toctree::
-       :maxdepth: 1
-    
-       Appendices/errorsAndDebug.rst
-       SimplePythonData/at_1_1.rst
+.. toctree::
+   :maxdepth: 2
+   
+   Testing/moreTesting.rst
+
 
 Acknowledgements
 ::::::::::::::::
