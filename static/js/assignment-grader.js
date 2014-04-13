@@ -17,7 +17,7 @@ jQuery(document).ready(function(){
 
 function getGradingModal(element, acid, studentId){
 	if(!eBookConfig.gradingURL){
-		alert("Can't grade with out a URL");
+		alert("Can't grade without a URL");
 		return false;
 	}
 
@@ -38,7 +38,7 @@ function getGradingModal(element, acid, studentId){
 				comment:comment,
 			},
 			success:function(data){
-				alert("saved");
+				//alert("saved");
 				jQuery('.grade',element).html(data.grade);
 				jQuery('.comment',element).html(data.comment);
 			}
@@ -63,8 +63,10 @@ function getGradingModal(element, acid, studentId){
 			event.preventDefault();
 			modal.on('hidden.bs.modal', function (e) {
 				next_element = element.next();
+				save(event); // save and next
 				jQuery('.gradable',next_element).click();
 			});
+
 			modal.modal('hide');
 		});
 		modal.modal('show');
