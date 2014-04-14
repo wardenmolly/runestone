@@ -39,9 +39,10 @@ For this week you have the following graded activities:
 
 .. _response_12:
 
-Reading Response 12 (coming soon)
----------------------------------
+Reading Response 12
+-------------------
 
+On p. 176-177, Weber describes "flaming" and "shunning" as a way to sanction developers who don't behave properly in an open source project. Referring back to the benefits from (motivations for) participation in the previous chapter, which benefits could effectively be taken away from developers through flaiming and shunning? 
   
 .. actex:: rr_12_1
 
@@ -50,7 +51,7 @@ Reading Response 12 (coming soon)
 
    """
 
-At an aggregate level, rather than an individual level, Weber argues that because open source projects are "antirival" goods, they can survive having only a small fraction of the participants making positive contributions. First, define "antiviral" in your own words. Then say whether you think the same argument would work just as well for a "nonrival" good as for an "antirival" good.  
+What's the difference between the GPL and the BSD license, and why do you think BSD-style licenses have become more popular than GPL-style licenses?
 
 .. actex:: rr_12_2
 
