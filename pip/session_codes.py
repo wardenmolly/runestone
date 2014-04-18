@@ -27,12 +27,19 @@ sessions[16] = ["Installation/installation"]
 sessions[17] = ["Functions/KeywordParams", "StringFormatting/interpolation"]
 sessions[18] = ["Assignments/week9"]
 sessions[19] = ["Assignments/week9"]
+sessions[20] = ["Classes/classesintro"]
+sessions[21] = ["Assignments/week10"]
+sessions[22] = ["Sequences/listcomprehensions"]
+sessions[23] = ["Assignments/week11"]
 
 f = open('session_codes.txt', 'w')
+g = open('json_sessin_codes.txt', 'w')
 
 for k in sessions:
     codes = get_codes(sessions[k])
     #print "session%d\t%d\t%s" % (k, len(codes), ', '.join(codes))
     f.write("session%d\t%d\t%s\n" % (k, len(codes), ', '.join(codes)))
+    g.write("session%d\t%d\t%s\n" % (k, len(codes), codes))
 
 f.close()
+g.close()
