@@ -14,6 +14,7 @@
    :prefix: cls-
    :start: 1
 
+.. _classes_chap:
 
 Classes and Objects - the Basics
 ================================
@@ -46,52 +47,14 @@ Usually, each object definition corresponds to some object or concept in the rea
 world and the functions that operate on that object correspond to the ways
 real-world objects interact.
 
-A change of perspective
------------------------
 
-Throughout the earlier chapters, we wrote functions and called them using a syntax such as ``drawCircle(tess)``.  This suggests that the
-function is the active agent. It says something like, *"Hey, drawCircle!  
-Here's a turtle object for you to use to draw with."*
-
-In object-oriented programming, the objects are considered the active agents. 
-For example, in our early introduction to turtles, we used
-an object-oriented style. We said ``tess.forward(100)``, which 
-asks the turtle to move itself forward by the given number of steps.
-An
-invocation like ``tess.circle()`` says *"Hey tess!
-Please use your circle method!"*
-
-
-
-This change in perspective is sometimes considered to be a more "polite" way to write programming instructions.  However, it may not initially
-be obvious that it is useful. It turns out that often times shifting responsibility from 
-the functions onto the objects makes it possible to write more versatile 
-functions and makes it easier to maintain and reuse code.  
-
-The most important advantage of the object-oriented style is that it
-fits our mental chunking and real-life experience more accurately. 
-In real life our ``cook`` method is part of our microwave oven --- we don't
-have a ``cook`` function sitting in the corner of the kitchen, into which
-we pass the microwave!  Similarly, we use the cellphone's own methods 
-to send an sms, or to change its state to silent.  The functionality 
-of real-world objects tends to be tightly bound up inside the objects 
-themselves.  OOP allows us to accurately mirror this when we
-organize our programs.
- 
 Objects Revisited
 -----------------
 
-In Python, every value is actually an object. Whether it be a turtle, a list, or even an integer, they are all objects.  Programs manipulate those objects either by performing
+In Python, every value is actually an object. Whether it be a dictionary, a list, or even an integer, they are all objects.  Programs manipulate those objects either by performing
 computation with them or by asking them to perform methods.  To be more specific, we say that an object has
-a **state** and a collection of **methods** that it can perform.  The state of an object represents those things
-that the object knows about itself.  For example, as we have seen with turtle objects, each turtle has a state consisting
-of the turtle's position, its color, its heading and so on.  Each turtle also has the ability to go forward, backward, or turn right or left.  Individual turtles are different in that even though they are
-all turtles, they differ in the specific values of the individual state attributes (maybe they are in a different location or have a different heading).
-
-.. image:: Figures/objectpic1.png
-   :alt: Simple object has state and methods
-
-
+a **state** and a collection of **methods** that it can perform. (More about **methods** below.) The state of an object represents those things
+that the object knows about itself.  For example, each list has state, the items in the list. And it has methods, such as append and pop, which can operate on the list to change its state or do something else useful. 
 
 
 .. index:: compound data type
@@ -99,7 +62,7 @@ all turtles, they differ in the specific values of the individual state attribut
 User Defined Classes
 --------------------
 
-We've already seen classes like ``str``, ``int``, ``float`` and ``Turtle``.  These were defined by Python and
+We've already seen classes like ``str``, ``int``,  ``float`` and ``list``.  These were defined by Python and
 made available for us to use.  However, in many cases when we are solving problems we need to create data objects
 that are related to the problem we are trying to solve.  We need to create our own classes.
 
@@ -211,21 +174,10 @@ However, notice that the ``is`` operator returns ``False`` meaning that they are
     print(p is q)
 
 
-This should look familiar --- we've used classes before to create
-more than one object:   
-
-.. sourcecode:: python
-
-    from turtle import Turtle    
-    
-    tess = Turtle()     # Instantiate objects of type Turtle   
-    alex = Turtle()  
- 
-The variables ``p`` and ``q`` are assigned references to two new ``Point`` objects. 
-A function like ``Turtle`` or ``Point`` that creates a new object instance 
+A function like ``Point`` that creates a new object instance 
 is called a **constructor**.  Every class automatically uses the name of the class as the name of the constructor function.
 The definition of the constructor function is done
-when you write the ``__init__`` function.
+when you write the ``__init__`` function (method) inside the class definition.
 
 It may be helpful to think of a class as a factory for making objects.  
 The class itself isn't an instance of a point, but it contains the machinery 
@@ -237,13 +189,38 @@ get the object properly set up with it's factory default settings.
 The combined process of "make me a new object" and "get its settings initialized
 to the factory default settings" is called **instantiation**.  
 
+To get a clearer understanding of what happens when instantiating a new instance, examine the previous code using CodeLens.
+
+.. codelens:: chp13_classes2a
+    
+    class Point:
+        """ Point class for representing and manipulating x,y coordinates. """
+        
+        def __init__(self):
+ 
+            self.x = 0
+            self.y = 0
+    
+    p = Point()         # Instantiate an object of type Point
+    q = Point()         # and make a second point
+
+    print(p)
+    print(q)
+
+    print(p is q)
+    
+At Step 6 in the codelens, you can see that Point has been bound to an object representing the point class, but there are not yet any instances. The execution of line 9, ``p = Point()``, occurs at steps 7-9. First, at step 7, you can see that a blank instance of the class has been created, and is passed as the first (and only parameter) to the ``__init__`` method. That method's code is executed, with the variable self bound to that instance. At steps 8 and 9, two instance variables are filled in: x and y are both set to 0. Nothing is returned from the __init__ method, but the point object itself is returned from the call to ``Point()``. Thus, at step 10,  p is bound to the new point that was created and initialized.
+
+Skipping ahead, by the time we get to Step 16, p and q are each bound to different points. Even though both have x and y instance variables set to 0, they are *different objects*. Thus ``p is q`` evaluates to False.
+
+
 Improving our Constructor
 ------------------------- 
 
 Our constructor so far can only create points at location ``(0,0)``.  To create a point at position (7, 6) requires that we
-provide some additional capability for the user to pass information to the constructor.  Since constructors are simply specially named functions, we can use parameters (as we've seen before) to provide the specific information.
+provide some additional capability for the user to pass information to the constructor.  Since constructors are simply specially named functions, we can use parameters (as we've seen before) to provide the specific information. 
     
-We can make our class constructor more general by putting extra parameters into
+We can make our class constructor more generally usable by putting extra parameters into
 the ``__init__`` method, as shown in this example.
 
 .. sourcecode:: python
@@ -282,10 +259,11 @@ We can group together the sensible operations, and the kinds of data
 they apply to, and each instance of the class can have its own state.       
           
 A **method** behaves like a function but it is invoked on a specific
-instance.  For example, with a turtle named ``tess``,  ``tess.right(90)`` asks the ``tess`` object to perform its
-``right`` method and turn 90 degrees.   Methods are accessed using dot notation.  
+instance.  For example, with a list bound to variable L, ``L.append(7)`` calls the function append, with the list itself as the first parameter and 7 as the second parameter.   Methods are accessed using dot notation. This is why ``L.append(7)`` has 2 parameters even though you may think it only has one: the list stored in the variable ``L`` is the first.  
 
-Let's add two simple methods to allow a point to give us information about its state.  The ``getX`` method, when invoked, will return the value of the x coordinate.  The implementation of this method is straight forward since we already know how
+Let's add two simple methods to allow a point to give us information about its state.  The ``getX`` method, when invoked, will return the value of the x coordinate.
+
+The implementation of this method is straight forward since we already know how
 to write functions that return values.  One thing to notice is that even though the ``getX`` method does not need any other parameter information to do its work, there is still one formal parameter, ``self``.  As we stated earlier, all methods defined in a class that operate on objects of that class will have ``self`` as their first parameter.  Again, this serves as reference to the object itself which in turn gives access to the state data inside the object.
 
 .. activecode:: chp13_classes4
@@ -309,7 +287,7 @@ to write functions that return values.  One thing to notice is that even though 
     print(p.getX())
     print(p.getY())
 
-Note that the ``getX`` method simply returns the value of ``self.x`` from the object itself.  In other words, the implementation of the method is to go to the state of the object itself and get the value of ``x``.  Likewise, the ``getY`` method looks the same.
+Note that the ``getX`` method simply returns the value of ``self.x`` from the object itself.  In other words, the implementation of the method is to go to the state of the object itself and get the value of ``x``.  Likewise, the ``getY`` method looks almost the same.
 
 Let's add another method, ``distanceFromOrigin``, to see better how methods
 work.  This method will again not need any additional information to do its work.
@@ -340,19 +318,15 @@ It will perform a more complex task.
     print(p.distanceFromOrigin())
 
 
-
-Notice that the caller of ``distanceFromOrigin`` does not explicitly 
-supply an argument to match the ``self`` parameter.  This is true of all method calls. The definition will always
+Notice that the call of ``distanceFromOrigin`` does not *explicitly* 
+supply an argument to match the ``self`` parameter.  This is true of all method calls. The definition will always seem to
 have one additional parameter as compared to the invocation.  
 
     
 Objects as Arguments and Parameters
--------------------------------------
+-----------------------------------
 
-You can pass an object as a argument in the usual way.  We've already seen
-this in some of the turtle examples where we passed the turtle to
-some function like ``drawRectangle`` so that the function could 
-control and use whatever turtle instance we passed to it.
+You can pass an object as a argument, in the usual way.
 
 Here is a simple function called ``distance`` involving our new ``Point`` objects.  The job of this function is to figure out the 
 distance between two points.
@@ -392,6 +366,40 @@ distance between two points.
 
 ``distance`` takes two points and returns the distance between them.  Note that ``distance`` is **not** a method of the Point class.  You can see this by looking at the indentation pattern.  It is not inside the class definition.  The other way we
 can know that ``distance`` is not a method of Point is that ``self`` is not included as a formal parameter.  In addition, we do not invoke ``distance`` using the dot notation.
+
+We *could have* made distance be a method of the Point class. Then, we would have called the first parameter self, and would have invoked it using the dot notation, as in the following code. Which way to implement it is a matter of coding style. Both work correctly. Most programmers choose whether to make functions be stand-alone or methods of a class based on whether the function semantically seems to be an operation that is performed on instances of the class. In this case, because distance is really a property of a pair of points and is symmetric (the distance from a to b is the same as that from b to a) it makes more sense to have it be a standalone function and not a method. Many heated discussions have occurred between programmers about such style decisions.
+
+.. activecode:: chp13_classes6a
+
+    import math
+    
+    class Point:
+        """ Point class for representing and manipulating x,y coordinates. """
+        
+        def __init__(self, initX, initY):
+ 
+            self.x = initX
+            self.y = initY
+
+        def getX(self):
+            return self.x
+
+        def getY(self):
+            return self.y
+
+        def distanceFromOrigin(self):
+            return ((self.x ** 2) + (self.y ** 2)) ** 0.5
+
+        def distance(self, point2):
+            xdiff = point2.getX()-self.getX()
+            ydiff = point2.getY()-self.getY()
+
+            dist = math.sqrt(xdiff**2 + ydiff**2)
+            return dist
+    
+    p = Point(4,3)
+    q = Point(0,0)
+    print(p.distance(q))
 
 
 Converting an Object to a String
@@ -479,7 +487,7 @@ Instances as Return Values
 --------------------------
 
 Functions and methods can return objects.  This is actually nothing new since everything in Python is an object and we have
-been returning values for quite some time.  The difference here is that we want to have the method create an object using
+been returning values for quite some time. (You can also have lists or tuples of object instances, etc.)  The difference here is that we want to have the method create an object using
 the constructor and then return it as the value of the method.
 
     
@@ -523,17 +531,10 @@ the target.
     print(mid.getY())
        
 
-The resulting Point, ``mid``, has an x value of 4 and a y value of 8.  We can also use any other methods since ``mid`` is a
+The resulting Point, ``mid``, has an x value of 4 and a y value of 8.  We can also use any other methods on ``mid`` since it is a
 ``Point`` object.
 
     
-
-.. note::
-
-    This workspace is provided for your convenience.  You can use this activecode window to try out anything you like.
-
-    .. activecode:: scratch_cl_01
-
 
 Glossary
 --------
@@ -588,132 +589,16 @@ Glossary
 Exercises
 ---------
 
-#.
-
-    .. tabbed:: q1
-
-        .. tab:: Question
-
-           Add a ``distanceFromPoint`` method that works similar to ``distanceFromOrigin`` except that it 
-           takes a ``Point`` as a parameter and
-           computes the distance between that point and self.
-
-        .. tab:: Answer
-            
-            .. activecode:: ch_cl_ex_1_answer
-            
-                import math
-                
-                class Point:
-                    """ Point class for representing and manipulating x,y coordinates. """
-
-                    def __init__(self, initX, initY):
-
-                        self.x = initX
-                        self.y = initY
-
-                    def getX(self):
-                        return self.x
-
-                    def getY(self):
-                        return self.y
-
-                    def distanceFromOrigin(self):
-                        return ((self.x ** 2) + (self.y ** 2)) ** 0.5
-                        
-                    def distanceFromPoint(self, otherP):
-                        dx = (otherP.getX()-self.x)
-                        dy = (otherP.getY()-self.y)
-                        return math.sqrt(dy**2 + dx**2)
-
-                p = Point(3,3)
-                q = Point(6,7)
-                print(p.distanceFromPoint(q))
-                
-
-        .. tab:: Discussion 
-
-            .. disqus::
-                :shortname: interactivepython
-                :identifier: disqus_090fe2d30b8d4fe58b829d06c58661f0
-
-
 #. Add a method ``reflect_x`` to Point which returns a new Point, one which is the 
    reflection of the point about the x-axis.  For example, 
    ``Point(3, 5).reflect_x()`` is (3, -5)
    
    .. activecode:: ch_cl_02
 
+
 #.
 
-    .. tabbed:: q3
-
-        .. tab:: Question
-
-           Add a method ``slope_from_origin`` which returns the slope of the line joining the origin
-           to the point.   For example, ::
-           
-              >>> Point(4, 10).slope_from_origin()
-              2.5     
-              
-           What cases will cause your method to fail? Return None when it happens.
-
-        .. tab:: Answer
-            
-            .. activecode:: ch_cl_ex_3_answer
-            
-                class Point:
-                    """ Point class for representing and manipulating x,y coordinates. """
-
-                    def __init__(self, initX, initY):
-
-                        self.x = initX
-                        self.y = initY
-
-                    def getX(self):
-                        return self.x
-
-                    def getY(self):
-                        return self.y
-
-                    def distanceFromOrigin(self):
-                        return ((self.x ** 2) + (self.y ** 2)) ** 0.5
-                        
-                    def slope_from_origin(self):
-                        if self.x == 0:
-                           return None
-                        else:
-                           return self.y/self.x
-
-
-                p = Point(4,10)
-                print(p.slope_from_origin())
-                
-
-        .. tab:: Discussion 
-
-            .. disqus::
-                :shortname: interactivepython
-                :identifier: disqus_d70d350ae8284138a5726f8140c45533
-
-
-#. The equation of a straight line is  "y = ax + b", (or perhaps "y = mx + c").
-   The coefficients a and b completely describe the line.  Write a method in the 
-   Point class so that if a point instance is given another point, it will compute the equation
-   of the straight line joining the two points.  It must return the two coefficients as a tuple
-   of two values.  For example,   ::
-   
-      >>> print(Point(4, 11).get_line_to(Point(6, 15))) 
-      >>> (2, 3)
- 
-   This tells us that the equation of the line joining the two points is "y = 2x + 3".    
-   When will your method fail?
-   
-   .. activecode:: ch_cl_04
-   
-#.
-
-    .. tabbed:: q5
+    .. tabbed:: q2
 
         .. tab:: Question
 
@@ -756,14 +641,3 @@ Exercises
                 p.move(5,10)
                 print(p)
  
-
-        .. tab:: Discussion 
-
-            .. disqus::
-                :shortname: interactivepython
-                :identifier: disqus_fc589edaa0e14bd28175850c95b79d15
-
-
-#.  Given three points that fall on the circumference of a circle, find the center and radius of the circle.
-
-    .. activecode:: ch_cl_06
