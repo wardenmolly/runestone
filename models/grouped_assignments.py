@@ -183,7 +183,7 @@ def assignment_get_engagement_time(assignment, user):
     # get all the activities of this user, from the useinfo table plus wherever the scrolling events are stored; TODO: restrict by deadline in the assignment
     activities = q.select(db.useinfo.div_id, db.useinfo.timestamp, orderby = db.useinfo.timestamp)
     sessions = []
-    THRESH = 300
+    THRESH = 600
     prev = None
     for current in activities:
         div_id = canonicalize(current.div_id)
@@ -194,7 +194,7 @@ def assignment_get_engagement_time(assignment, user):
 #                print "current div_id not in divds? ", current.div_id not in divids
 #                print "%d seconds since prev" % (current.timestamp - prev.timestamp).total_seconds()
                 if len(sessions) > 0 and not sessions[-1].end:
-                    sessions[-1].end = prev.timestamp + datetime.timedelta(seconds=15)
+                    sessions[-1].end = prev.timestamp + datetime.timedelta(seconds=30)
             else:
                 # add to activities count for previous session
                 sessions[-1].count += 1
@@ -204,7 +204,7 @@ def assignment_get_engagement_time(assignment, user):
         prev = current
     if len(sessions) > 0 and not sessions[-1].end:
         # close out last session
-        sessions[-1].end = prev.timestamp + datetime.timedelta(seconds=15)
+        sessions[-1].end = prev.timestamp + datetime.timedelta(seconds=30)
 #    for s in sessions:
 #        print "%d seconds from %d activities" % ((s.end-s.start).total_seconds(), s.count)
     total_time = sum([(s.end-s.start).total_seconds() for s in sessions])
