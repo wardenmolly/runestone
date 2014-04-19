@@ -1,3 +1,5 @@
+import datetime
+
 def pct2pts(x):
     return "%.2f" % (100*x)
 
@@ -86,7 +88,7 @@ def student_grade(user=None, course=None, assignment_type=None):
     if not user or not course or not assignment_type:
         return grade
 
-    # Check assignment type weight before setting it incase its None
+    # Check assignment type weight before setting it in case its None
     if assignment_type.weight != None:
         grade.weight = assignment_type.weight
     if assignment_type.points_possible != None:
@@ -141,6 +143,73 @@ class score(object):
         self.points = points
         self.comment = comment
 
+def canonicalize(div_id):
+    if ".html" in div_id:
+        full_url = div_id
+        # return canonical url, without #anchors
+        if full_url.rfind('#') > 0:
+            full_url = full_url[:url.rfind('#')]
+        full_url = full_url.replace('/runestone/static/pip/', '')
+        return full_url
+    else:
+        return div_id
+class Session(object):
+    def __init__(self, start, end = None):
+        self.start = start
+        self.end = end
+        self.count = 1
+
+def get_deadline(assignment, user):
+    section = section_users(db.auth_user.id == user.id).select(db.sections.ALL).first()
+    q = db(db.deadlines.assignment == assignment.id)
+    if section:
+        q = q((db.deadlines.section == section.id) | (db.deadlines.section==None))
+    else:
+        q = q(db.deadlines.section==None)
+    dl = q.select(db.deadlines.ALL, orderby=db.deadlines.section).first()
+    if dl:
+        return dl.deadline  #a datetime object
+    else:
+        return None
+
+def assignment_get_engagement_time(assignment, user):
+    # get all the divids for this assignment
+    divids = [row.acid for row in db(db.problems.assignment == assignment.id).select(db.problems.acid)]
+    dl = get_deadline(assignment, user)
+    q = db(db.useinfo.sid == user.username)
+    if dl:
+#        print "deadline is %s" % dl
+        q = q(db.useinfo.timestamp < dl)
+    # get all the activities of this user, from the useinfo table plus wherever the scrolling events are stored; TODO: restrict by deadline in the assignment
+    activities = q.select(db.useinfo.div_id, db.useinfo.timestamp, orderby = db.useinfo.timestamp)
+    sessions = []
+    THRESH = 300
+    prev = None
+    for current in activities:
+        div_id = canonicalize(current.div_id)
+        if prev and canonicalize(prev.div_id) in divids:
+            if div_id not in divids or (current.timestamp - prev.timestamp).total_seconds() > THRESH:
+                # close previous session
+#                print "closing previous"
+#                print "current div_id not in divds? ", current.div_id not in divids
+#                print "%d seconds since prev" % (current.timestamp - prev.timestamp).total_seconds()
+                if len(sessions) > 0 and not sessions[-1].end:
+                    sessions[-1].end = prev.timestamp + datetime.timedelta(seconds=15)
+            else:
+                # add to activities count for previous session
+                sessions[-1].count += 1
+        if div_id in divids:
+            if len(sessions) == 0 or sessions[-1].end:
+                sessions.append(Session(current.timestamp))
+        prev = current
+    if len(sessions) > 0 and not sessions[-1].end:
+        # close out last session
+        sessions[-1].end = prev.timestamp + datetime.timedelta(seconds=15)
+#    for s in sessions:
+#        print "%d seconds from %d activities" % ((s.end-s.start).total_seconds(), s.count)
+    total_time = sum([(s.end-s.start).total_seconds() for s in sessions])
+    return total_time
+
 def assignment_get_use_scores(assignment, problem=None, user=None, section_id=None):
     scores = []
     if problem and user:
@@ -148,8 +217,17 @@ def assignment_get_use_scores(assignment, problem=None, user=None, section_id=No
     elif problem:
         pass
     elif user:
-        attempted_problems = db(db.useinfo.div_id == db.problems.acid)(db.problems.assignment == assignment.id)(db.useinfo.sid == user.username).select(db.problems.acid)
+        dl = get_deadline(assignment, user)
+        q =  db(db.useinfo.div_id == db.problems.acid)(db.problems.assignment == assignment.id)(db.useinfo.sid == user.username)
+        if dl:
+            q = q(db.useinfo.timestamp < dl)       
+        attempted_problems = q.select(db.problems.acid)
         for problem in db(db.problems.assignment == assignment.id).select(db.problems.acid):
+            if ".html" in problem.acid:
+                # don't include opening the page as a problems they can attempt or not;
+                # they are included as problems so that total time on session prep
+                # is calculated correctly
+                continue
             matches = [x for x in attempted_problems if x.acid == problem.acid]
             points = 0
             if len(matches) > 0:
@@ -213,6 +291,7 @@ def assignment_get_scores(assignment, problem=None, user=None, section_id=None):
                 ))
     return scores
 db.assignments.scores = Field.Method(lambda row, problem=None, user=None, section_id=None: assignment_get_scores(row.assignments, problem, user, section_id))
+db.assignments.time = Field.Method(lambda row, user=None: assignment_get_engagement_time(row.assignments, user))
 
 def assignment_set_grade(assignment, user):
     # delete the old grades; we're regrading
