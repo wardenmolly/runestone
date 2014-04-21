@@ -172,27 +172,29 @@ def get_deadline(assignment, user):
     else:
         return None
 
-def assignment_get_engagement_time(assignment, user):
+def assignment_get_engagement_time(assignment, user, preclass):
     # get all the divids for this assignment
     divids = [row.acid for row in db(db.problems.assignment == assignment.id).select(db.problems.acid)]
-    dl = get_deadline(assignment, user)
+    
+    # get all the activities for this user
+    # could probably simplify and get a reasonable approximation by just retrieving the activities for this assignment; FUTURE WORK
     q = db(db.useinfo.sid == user.username)
-    if dl:
-#        print "deadline is %s" % dl
-        q = q(db.useinfo.timestamp < dl)
-    # get all the activities of this user, from the useinfo table plus wherever the scrolling events are stored; TODO: restrict by deadline in the assignment
+    if preclass:
+        dl = get_deadline(assignment, user)
+        print dl
+        if dl:
+            q = q(db.useinfo.timestamp < dl)
+
     activities = q.select(db.useinfo.div_id, db.useinfo.timestamp, orderby = db.useinfo.timestamp)
     sessions = []
     THRESH = 600
     prev = None
+    print len(activities)
     for current in activities:
         div_id = canonicalize(current.div_id)
         if prev and canonicalize(prev.div_id) in divids:
             if div_id not in divids or (current.timestamp - prev.timestamp).total_seconds() > THRESH:
                 # close previous session
-#                print "closing previous"
-#                print "current div_id not in divds? ", current.div_id not in divids
-#                print "%d seconds since prev" % (current.timestamp - prev.timestamp).total_seconds()
                 if len(sessions) > 0 and not sessions[-1].end:
                     sessions[-1].end = prev.timestamp + datetime.timedelta(seconds=30)
             else:
@@ -205,22 +207,21 @@ def assignment_get_engagement_time(assignment, user):
     if len(sessions) > 0 and not sessions[-1].end:
         # close out last session
         sessions[-1].end = prev.timestamp + datetime.timedelta(seconds=30)
-#    for s in sessions:
-#        print "%d seconds from %d activities" % ((s.end-s.start).total_seconds(), s.count)
     total_time = sum([(s.end-s.start).total_seconds() for s in sessions])
     return total_time
 
-def assignment_get_use_scores(assignment, problem=None, user=None, section_id=None):
+def assignment_get_use_scores(assignment, problem=None, user=None, section_id=None, preclass=True):
     scores = []
     if problem and user:
         pass
     elif problem:
         pass
     elif user:
-        dl = get_deadline(assignment, user)
         q =  db(db.useinfo.div_id == db.problems.acid)(db.problems.assignment == assignment.id)(db.useinfo.sid == user.username)
-        if dl:
-            q = q(db.useinfo.timestamp < dl)       
+        if preclass:
+            dl = get_deadline(assignment, user)
+            if dl:
+                q = q(db.useinfo.timestamp < dl)       
         attempted_problems = q.select(db.problems.acid)
         for problem in db(db.problems.assignment == assignment.id).select(db.problems.acid):
             if ".html" in problem.acid:
@@ -242,10 +243,10 @@ def assignment_get_use_scores(assignment, problem=None, user=None, section_id=No
     return scores
 
 
-def assignment_get_scores(assignment, problem=None, user=None, section_id=None):
+def assignment_get_scores(assignment, problem=None, user=None, section_id=None, preclass=True):
     assignment_type = db(db.assignment_types.id == assignment.assignment_type).select().first()
     if assignment_type and assignment_type.grade_type == 'use':
-        return assignment_get_use_scores(assignment, problem, user, section_id)
+        return assignment_get_use_scores(assignment, problem, user, section_id, preclass)
     scores = []
     if problem and user:
         pass
@@ -290,8 +291,8 @@ def assignment_get_scores(assignment, problem=None, user=None, section_id=None):
                 user=g.auth_user,
                 ))
     return scores
-db.assignments.scores = Field.Method(lambda row, problem=None, user=None, section_id=None: assignment_get_scores(row.assignments, problem, user, section_id))
-db.assignments.time = Field.Method(lambda row, user=None: assignment_get_engagement_time(row.assignments, user))
+db.assignments.scores = Field.Method(lambda row, problem=None, user=None, section_id=None, preclass=True: assignment_get_scores(row.assignments, problem, user, section_id, preclass))
+db.assignments.time = Field.Method(lambda row, user=None, preclass=True: assignment_get_engagement_time(row.assignments, user, preclass))
 
 def assignment_set_grade(assignment, user):
     # delete the old grades; we're regrading
@@ -305,8 +306,8 @@ def assignment_set_grade(assignment, user):
 
     points = 0.0
     if assignment_type.grade_type == 'use':
-        checks = len([p for p in assignment_get_scores(assignment, user=user) if p.points > 0])
-        time = assignment_get_engagement_time(assignment, user)
+        checks = len([p for p in assignment_get_scores(assignment, user=user, preclass=True) if p.points > 0])
+        time = assignment_get_engagement_time(assignment, user, preclass=True)
         if checks >= assignment.threshold or time > 20*60:
             # if enough checkmarks or enough time
             points = assignment.points

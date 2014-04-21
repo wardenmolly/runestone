@@ -39,25 +39,29 @@
 				</div>
 				<div id="assignment-{{=row.assignments.id}}" class="panel-collapse collapse">
 			      <div class="panel-body">
-			      	{{ problems = row.assignments.scores(user = student)}}
+			      	{{ problems = row.assignments.scores(user = student, preclass=False)}}
 			      	{{ completed_problems = [p for p in problems if p.points > 0]}}
+                  {{ preclass_problems = row.assignments.scores(user = student, preclass=True)}}
+                  {{ preclass_completed_problems = [p for p in preclass_problems if p.points > 0]}}
 			      	{{ if type.grade_type == 'use':}}
-                  {{ time = row.assignments.time(user=student)}}
-			      	<p>You spent {{= "%.1f" % (time/60.0)}} minutes on activities related to preparing for this session.</p>
-			      	<p>You completed {{=len(completed_problems)}} activities.</p>
-			      	<p>You needed 20 mintues or {{=row.assignments.threshold}} activities to get credit for the assignment.</p>
+                  {{ time = row.assignments.time(user=student, preclass=False)}}
+                  {{ preclass_time = row.assignments.time(user=student, preclass=True)}}
+			      	<p>You spent {{= "%.1f" % (time/60.0)}} minutes on these activities, {{= "%.1f" % (preclass_time/60.0)}} minutes before the class.</p>
+			      	<p>You completed {{=len(completed_problems)}} activities, {{=len(preclass_completed_problems)}} before the class.</p>
+			      	<p>You needed 20 minutes or {{=row.assignments.threshold}} activities before the class session to get credit for the assignment.</p>
 			      	{{ pass }}
 			      	<ul class="list-group">
-			      	{{for problem in problems:}}
+			      	{{for (problem,preclass_problem) in zip(problems, preclass_problems):}}
 			      		<li class="list-group-item">
 			      			<span class="badge">{{=problem.points}}</span>
+			      			<span class="badge">{{=preclass_problem.points}}</span>
 			      			<h4>{{=problem.acid}}</h4>
 			      			{{if problem.comment:}}
 			      			<p>{{=problem.comment}}</p>
 			      			{{pass}}
 			      		</li>
 			      	{{pass}}
-			      	{{ if len(problems) < 1: }}
+			      	{{ if len(preclass_problems) < 1: }}
 			      		<div class="alert alert-info">No Problems Recorded</div>
 			      	{{pass}}
 			      	</ul>
