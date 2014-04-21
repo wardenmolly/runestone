@@ -302,7 +302,7 @@ def assignment_set_grade(assignment, user):
 
     points = 0.0
     if assignment_type.grade_type == 'use':
-        checks = len([p for p in assignment_get_scores(assignment, user=user, preclass=True) if p.points > 0])
+        checks = len([p for p in assignment_get_scores(assignment, user=user, preclass=False) if p.points > 0])
         time = assignment_get_engagement_time(assignment, user, preclass=True)
         if checks >= assignment.threshold or time > 20*60:
             # if enough checkmarks or enough time
