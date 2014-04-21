@@ -108,7 +108,6 @@ def student_grade(user=None, course=None, assignment_type=None):
         db.grades.ALL,
         orderby=db.assignments.name,
         )
-    # print assignments
     for row in assignments:
         grade.scores.append(row.grades.score)
         grade.assignment_scores.append(row.assignments.points)
@@ -181,7 +180,6 @@ def assignment_get_engagement_time(assignment, user, preclass):
     q = db(db.useinfo.sid == user.username)
     if preclass:
         dl = get_deadline(assignment, user)
-        print dl
         if dl:
             q = q(db.useinfo.timestamp < dl)
 
@@ -189,7 +187,6 @@ def assignment_get_engagement_time(assignment, user, preclass):
     sessions = []
     THRESH = 600
     prev = None
-    print len(activities)
     for current in activities:
         div_id = canonicalize(current.div_id)
         if prev and canonicalize(prev.div_id) in divids:
@@ -300,7 +297,6 @@ def assignment_set_grade(assignment, user):
 
     assignment_type = db(db.assignment_types.id == assignment.assignment_type).select().first()
     if not assignment_type:
-#        print "no assignment type"
         # if we don't know how to grade this assignment, don't grade the assignment.
         return 0
 
