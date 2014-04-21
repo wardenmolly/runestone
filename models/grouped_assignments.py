@@ -299,30 +299,30 @@ def assignment_set_grade(assignment, user):
 
     assignment_type = db(db.assignment_types.id == assignment.assignment_type).select().first()
     if not assignment_type:
-        print "no assignment type"
+#        print "no assignment type"
         # if we don't know how to grade this assignment, don't grade the assignment.
         return 0
 
     points = 0.0
     if assignment_type.grade_type == 'use':
-        for problem in db(db.problems.assignment == assignment.id).select():
-            if db(db.useinfo.div_id == problem.acid)(db.useinfo.sid == user.username).select().first():
-                points += 1
-    else:
-        for prob in assignment.scores(user=user):
-            if prob.points:
-                points = points + prob.points
-
-    if assignment_type.grade_type in ['checkmark', 'use']:
+        checks = len([p for p in assignment_get_scores(assignment, user=user) if p.points > 0])
+        time = assignment_get_engagement_time(assignment, user)
+        if checks >= assignment.threshold or time > 20*60:
+            # if enough checkmarks or enough time
+            points = assignment.points
+        else:
+            points = 0
+    elif assignment_type.grade_type == 'checkmark':
+        checks = sum([p.points for p in assignment.scores(user=user) if p.points])
         # threshold grade
-        if points >= assignment.threshold:
+        if checks >= assignment.threshold:
             points = assignment.points
         else:
             points = 0
     else:
         # they got the points they earned
-        pass
-
+        points = sum([p.points for p in assignment.scores(user=user)])
+        
     db.grades.insert(
         auth_user=user.id,
         assignment=assignment.id,

@@ -44,7 +44,8 @@
 			      	{{ if type.grade_type == 'use':}}
                   {{ time = row.assignments.time(user=student)}}
 			      	<p>You spent {{= "%.1f" % (time/60.0)}} minutes on activities related to preparing for this session.</p>
-			      	<p>You completed {{=len(completed_problems)}} activities. You needed to do {{=row.assignments.threshold}} to get full credit.</p>
+			      	<p>You completed {{=len(completed_problems)}} activities.</p>
+			      	<p>You needed 20 mintues or {{=row.assignments.threshold}} activities to get credit for the assignment.</p>
 			      	{{ pass }}
 			      	<ul class="list-group">
 			      	{{for problem in problems:}}
