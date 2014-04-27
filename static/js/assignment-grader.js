@@ -52,7 +52,7 @@ function getGradingModal(element, acid, studentId){
 		var modal_markup = jQuery('#modal-template').html();
 		jQuery('body').append(modal_markup);
 		var modal = jQuery('.modal.modal-grader:not(#modal-template .modal)');
-		jQuery('.modal-title',modal).html(data.name);
+		jQuery('.modal-title',modal).html(data.name+' <em>'+data.acid+'</em>');
 		jQuery('.activecode-target',modal).attr('id',data.acid+"_"+data.username);
 		jQuery('#input-grade',modal).val(data.grade);
 		jQuery('#input-comments',modal).val(data.comment);
@@ -63,7 +63,7 @@ function getGradingModal(element, acid, studentId){
 			event.preventDefault();
 			modal.on('hidden.bs.modal', function (e) {
 				next_element = element.next();
-				save(event); // save and next
+				jQuery('form',modal).submit();
 				jQuery('.gradable',next_element).click();
 			});
 
