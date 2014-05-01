@@ -239,6 +239,60 @@ def assignment_get_use_scores(assignment, problem=None, user=None, section_id=No
         pass
     return scores
 
+def get_all_times_and_activity_counts():    
+    ## get mapping from problem names (divids) to assignments
+    p2a = {}        
+    for p in db(db.assignments.grade_type == 'use')(db.problems.assignment == db.assignments.id).select():
+        p2a[canonicalize(p.acid)] = p.assignment
+    
+    class User_data:
+        def __init__(self, user_id):
+            self.user_id = user_id
+            self.assignments = {}
+        def add_session(self, s, div_id):
+            a = p2a(div_id)
+            if a not in self.assignments:
+                self.assignments[a] = []
+            self.assignments[a].append(s)
+                
+                
+    ## get all use scores and times; group for each user
+    all_user_data = []
+    rows = db().select(db.useinfo.ALL, orderby=db.useinfo.sid|db.useinfo.timestamp)
+    curr_session = None
+    curr_user = None
+    prev_row = None
+    THRESH = 600
+    for row in rows:
+        if not curr_user or row.sid != curr_user.user_id:
+            # on to next user
+            curr_user = User_data(row.sid)
+            all_user_data.append(curr_user)
+            if not curr_session.end:
+                curr_session.end = prev_row.timestamp + datetime.timedelta(seconds=30)
+            curr_session = None
+        div_id = canonicalize(row.div_id)
+        if div_id not in p2a:
+            continue  # ignore activities that aren't associated with any assignment
+        if curr_sess: # see whether to continue it or close it
+            if curr_session and p2a[curr_session.div_id] == p2a[div_id] and (row.timestamp - prev_row.timestamp) < THRESH:
+                # continue previous session if same assignment and not too much time has passed since last activity
+                curr_session.count +=1
+            else:
+                # close previous session
+                curr_session.end = prev_row.timestamp + datetime.timedelta(seconds=30)
+        if not curr_session or curr_session.end:
+            curr_session = Session(row.timestamp, div_id = div_id)
+            ## add it to sessions list for that assignment for current user
+            u_d.add_session(curr_session, div_id)
+        prev_row = row
+    if not curr_session.end:
+        # close very last sessions
+        curr_session.end = prev_row.timestamp + datetime.timedelta(seconds=30)
+        
+
+    
+    ## return it all
 
 def assignment_get_scores(assignment, problem=None, user=None, section_id=None, preclass=True):
     assignment_type = db(db.assignment_types.id == assignment.assignment_type).select().first()
