@@ -140,6 +140,9 @@ class score(object):
         self.acid = acid
         self.user = user
         self.points = points
+        if type(self.points) not in [float, int]:
+            # would be nice to flag error here
+            self.points = 0 
         self.comment = comment
 
 def canonicalize(div_id):
