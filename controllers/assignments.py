@@ -468,9 +468,27 @@ def migrate_to_scores():
 
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
 def download():
-	field_names = ['name','email','ass1']
+	course = db(db.courses.id == auth.user.course_id).select().first()
+	students = db(db.auth_user.course_id == course.id).select()
+	assignments = db(db.assignments.course == course.id).select(db.assignments.ALL, orderby=db.assignments.name)
+	grades = db(db.grades).select()
+
+	field_names = ['Name','Email']
+	for ass in assignments:
+		field_names.append(ass.name)
+	
 	student_data = []
-	student_data.append(['Test','test@test.com',9])
+	for student in students:
+		mylist = [] # for lack of a better name
+		mylist.append(student.first_name+" "+student.last_name)
+		mylist.append(student.email)
+		for ass in assignments:	
+			grade = [x for x in grades if x.auth_user==student.id and x.assignment==ass.id]
+			if len(grade) > 0:
+				mylist.append(grade[0].score)
+			else:
+				mylist.append(0)
+		student_data.append(mylist)
 	response.view='generic.csv'
 	return dict(filename='grades_download.csv', csvdata=student_data,field_names=field_names)
 
