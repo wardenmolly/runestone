@@ -470,25 +470,35 @@ def migrate_to_scores():
 def download():
 	course = db(db.courses.id == auth.user.course_id).select().first()
 	students = db(db.auth_user.course_id == course.id).select()
-	assignments = db(db.assignments.course == course.id).select(db.assignments.ALL, orderby=db.assignments.assignment_type)
+	assignments = db(db.assignments.course == course.id)(db.assignments.assignment_type==db.assignment_types.id).select(orderby=db.assignments.assignment_type)
 	grades = db(db.grades).select()
 
 	field_names = ['Name','Email']
-	for ass in assignments:
-		field_names.append(ass.name)
+	regular_assignments = [a for a in assignments if a.assignment_types.grade_type != 'use']
+	use_assignments = [a for a in assignments if a.assignment_types.grade_type == 'use']
+	for ass in regular_assignments:
+		field_names.append(ass.assignments.name)
+	for postfix in ["_time", "_time_pre_deadline", "_activities", "_activities_pre_deadline", "_max_act"]:
+		for ass in use_assignments:
+			field_names.append(ass.assignments.name+ postfix)
 	
 	student_data = []
+	use_data = get_all_times_and_activity_counts(course)
 	for student in students:
-		mylist = [] # for lack of a better name
-		mylist.append(student.first_name+" "+student.last_name)
-		mylist.append(student.email)
+		row = {}
+		row['Name']=student.first_name+" "+student.last_name
+		row['Email']=student.email
 		for ass in assignments:	
-			grade = [x for x in grades if x.auth_user==student.id and x.assignment==ass.id]
+			grade = [x for x in grades if x.auth_user==student.id and x.assignment==ass.assignments.id]
 			if len(grade) > 0:
-				mylist.append(grade[0].score)
+				row[ass.assignments.name] = grade[0].score
 			else:
-				mylist.append(0)
-		student_data.append(mylist)
+				row[ass.assignments.name] = 0
+		usage = use_data[student.registration_id].csv_dict()
+		for k in usage:
+			row[k]= usage[k]
+
+		student_data.append(row)
 	response.view='generic.csv'
 	return dict(filename='grades_download.csv', csvdata=student_data,field_names=field_names)
 

@@ -156,10 +156,11 @@ def canonicalize(div_id):
     else:
         return div_id
 class Session(object):
-    def __init__(self, start, end = None):
+    def __init__(self, start, end = None, assignment = None):
         self.start = start
         self.end = end
         self.count = 1
+        self.assignment = assignment
 
 def get_deadline(assignment, user):
     section = section_users(db.auth_user.id == user.id).select(db.sections.ALL).first()
@@ -242,60 +243,111 @@ def assignment_get_use_scores(assignment, problem=None, user=None, section_id=No
         pass
     return scores
 
-def get_all_times_and_activity_counts():    
-    ## get mapping from problem names (divids) to assignments
-    p2a = {}        
-    for p in db(db.assignments.grade_type == 'use')(db.problems.assignment == db.assignments.id).select():
-        p2a[canonicalize(p.acid)] = p.assignment
+def get_all_times_and_activity_counts(course):
+        
+    ## get mapping from problem names (divids) to assignments, and count of problems per assignment
+    p2a = {}
+    act_per_ass = {}
+    deadlines = {}
+    for p in db(db.assignment_types.id == db.assignments.assignment_type)(db.assignment_types.grade_type == 'use')(db.problems.assignment == db.assignments.id).select():
+        p2a[canonicalize(p.problems.acid)] = p.assignments.id
+        act_per_ass[p.assignments.id] = act_per_ass.get(p.assignments.id, 0) + 1
     
+    def times(assignment, pre_deadline=False):
+        sessions = assignment['sessions']
+        if pre_deadline and 'deadline' in assignment:
+            dl = assignment['deadline']
+            sessions = [s for s in sessions if s.start < dl]
+        return sum([(s.end-s.start).total_seconds() for s in sessions])
+    def count(assignment, pre_deadline=False):
+        acts = assignment['activities'].values()
+        if pre_deadline and 'deadline' in assignment:
+            dl = assignment['deadline']
+            acts = [a for a in acts if a < dl]
+        return len(acts)
+    def name(assignment_id):
+        return db.assignments(assignment_id).name
+    def get_deadline(assignment_id, user_id):
+        section = section_users(db.auth_user.registration_id == user_id).select(db.sections.ALL).first()
+        q = db(db.deadlines.assignment == assignment_id)
+        if section:
+            q = q((db.deadlines.section == section.id) | (db.deadlines.section==None))
+        else:
+            q = q(db.deadlines.section==None)
+        dl = q.select(db.deadlines.ALL, orderby=db.deadlines.section).first()
+        if dl:
+            return dl.deadline  #a datetime object
+        else:
+            return None
     class User_data:
         def __init__(self, user_id):
             self.user_id = user_id
             self.assignments = {}
+            ## {'assignment_id' : {'deadline': datetime, 'sessions' : [instances of Session], 'activities': {div_id: datetime}}}
         def add_session(self, s, div_id):
-            a = p2a(div_id)
+            a = p2a[div_id]
             if a not in self.assignments:
-                self.assignments[a] = []
-            self.assignments[a].append(s)
+                self.assignments[a] = {'sessions': [], 'activities': {}, 'deadline': get_deadline(a, self.user_id)}
+            self.assignments[a]['sessions'].append(s)
+        def add_activity(self, div_id, timestamp):
+            a = p2a[div_id]
+            if a not in self.assignments:
+                self.assignments[a] = {'sessions': [], 'activities': {}, 'deadline': get_deadline(a, self.user_id)}
+            if div_id not in self.assignments[a]['activities']:
+                self.assignments[a]['activities'][div_id] = timestamp
+        def csv_dict(self):
+            ret = {}
+            ret['user_id'] = self.user_id
+            for a in self.assignments:
+                nm = name(a)
+                ret[nm+"_time"] = times(self.assignments[a])
+                ret[nm+"_time_pre_deadline"] = times(self.assignments[a], pre_deadline=True)
+                ret[nm+"_activities"] = count(self.assignments[a])
+                ret[nm+"_activities_pre_deadline"] = count(self.assignments[a], pre_deadline=True)
+                ret[nm+"_max_act"] = act_per_ass[a]
+            return ret
+            
                 
                 
     ## get all use scores and times; group for each user
-    all_user_data = []
-    rows = db().select(db.useinfo.ALL, orderby=db.useinfo.sid|db.useinfo.timestamp)
+    all_user_data = {}
+    rows = db(db.auth_user.course_id == course.id)(db.auth_user.registration_id == db.useinfo.sid).select(orderby=db.useinfo.sid|db.useinfo.timestamp)
     curr_session = None
     curr_user = None
     prev_row = None
     THRESH = 600
     for row in rows:
-        if not curr_user or row.sid != curr_user.user_id:
+        if not curr_user or row.useinfo.sid != curr_user.user_id:
             # on to next user
-            curr_user = User_data(row.sid)
-            all_user_data.append(curr_user)
-            if not curr_session.end:
-                curr_session.end = prev_row.timestamp + datetime.timedelta(seconds=30)
-            curr_session = None
-        div_id = canonicalize(row.div_id)
+            curr_user = User_data(row.useinfo.sid)
+            all_user_data[row.useinfo.sid] = curr_user
+            if curr_session and not curr_session.end:
+                # close session for this user
+                curr_session.end = prev_row.useinfo.timestamp + datetime.timedelta(seconds=30)
+                curr_session = None
+            prev_row = None
+        div_id = canonicalize(row.useinfo.div_id)
         if div_id not in p2a:
             continue  # ignore activities that aren't associated with any assignment
-        if curr_sess: # see whether to continue it or close it
-            if curr_session and p2a[curr_session.div_id] == p2a[div_id] and (row.timestamp - prev_row.timestamp) < THRESH:
-                # continue previous session if same assignment and not too much time has passed since last activity
-                curr_session.count +=1
+        curr_user.add_activity(div_id, row.useinfo.timestamp)
+        if curr_session: # see whether to continue it or close it
+            if curr_session and curr_session.assignment == p2a[div_id] and (row.useinfo.timestamp - prev_row.useinfo.timestamp).total_seconds() < THRESH:
+                # continue current session if same assignment and not too much time has passed since last activity
+                pass
             else:
                 # close previous session
-                curr_session.end = prev_row.timestamp + datetime.timedelta(seconds=30)
+                curr_session.end = prev_row.useinfo.timestamp + datetime.timedelta(seconds=30)
         if not curr_session or curr_session.end:
-            curr_session = Session(row.timestamp, div_id = div_id)
+            curr_session = Session(row.useinfo.timestamp, assignment = p2a[div_id])
             ## add it to sessions list for that assignment for current user
-            u_d.add_session(curr_session, div_id)
+            curr_user.add_session(curr_session, div_id)
         prev_row = row
     if not curr_session.end:
-        # close very last sessions
-        curr_session.end = prev_row.timestamp + datetime.timedelta(seconds=30)
-        
-
+        # close very last session
+        curr_session.end = prev_row.useinfo.timestamp + datetime.timedelta(seconds=30)
     
     ## return it all
+    return all_user_data
 
 def assignment_get_scores(assignment, problem=None, user=None, section_id=None, preclass=True):
     assignment_type = db(db.assignment_types.id == assignment.assignment_type).select().first()
