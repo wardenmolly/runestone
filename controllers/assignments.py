@@ -470,7 +470,7 @@ def migrate_to_scores():
 def download():
 	course = db(db.courses.id == auth.user.course_id).select().first()
 	students = db(db.auth_user.course_id == course.id).select()
-	assignments = db(db.assignments.course == course.id).select(db.assignments.ALL, orderby=db.assignments.name)
+	assignments = db(db.assignments.course == course.id).select(db.assignments.ALL, orderby=db.assignments.assignment_type)
 	grades = db(db.grades).select()
 
 	field_names = ['Name','Email']
