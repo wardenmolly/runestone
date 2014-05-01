@@ -494,7 +494,7 @@ def download():
 				row[ass.assignments.name] = grade[0].score
 			else:
 				row[ass.assignments.name] = 0
-		usage = use_data[student.registration_id].csv_dict()
+		usage = use_data[student.registration_id]
 		for k in usage:
 			row[k]= usage[k]
 

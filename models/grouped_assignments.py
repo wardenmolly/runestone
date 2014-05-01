@@ -308,45 +308,37 @@ def get_all_times_and_activity_counts(course):
             return ret
             
                 
-                
-    ## get all use scores and times; group for each user
+    students = db(db.auth_user.course_id == course.id).select(db.auth_user.registration_id)
     all_user_data = {}
-    rows = db(db.auth_user.course_id == course.id)(db.auth_user.registration_id == db.useinfo.sid).select(orderby=db.useinfo.sid|db.useinfo.timestamp)
-    curr_session = None
-    curr_user = None
-    prev_row = None
-    THRESH = 600
-    for row in rows:
-        if not curr_user or row.useinfo.sid != curr_user.user_id:
-            # on to next user
-            curr_user = User_data(row.useinfo.sid)
-            all_user_data[row.useinfo.sid] = curr_user
-            if curr_session and not curr_session.end:
-                # close session for this user
-                curr_session.end = prev_row.useinfo.timestamp + datetime.timedelta(seconds=30)
-                curr_session = None
-            prev_row = None
-        div_id = canonicalize(row.useinfo.div_id)
-        if div_id not in p2a:
-            continue  # ignore activities that aren't associated with any assignment
-        curr_user.add_activity(div_id, row.useinfo.timestamp)
-        if curr_session: # see whether to continue it or close it
-            if curr_session and curr_session.assignment == p2a[div_id] and (row.useinfo.timestamp - prev_row.useinfo.timestamp).total_seconds() < THRESH:
-                # continue current session if same assignment and not too much time has passed since last activity
-                pass
-            else:
-                # close previous session
-                curr_session.end = prev_row.useinfo.timestamp + datetime.timedelta(seconds=30)
-        if not curr_session or curr_session.end:
-            curr_session = Session(row.useinfo.timestamp, assignment = p2a[div_id])
-            ## add it to sessions list for that assignment for current user
-            curr_user.add_session(curr_session, div_id)
-        prev_row = row
-    if not curr_session.end:
-        # close very last session
-        curr_session.end = prev_row.useinfo.timestamp + datetime.timedelta(seconds=30)
-    
-    ## return it all
+    for student in students:
+        curr_user = User_data(student.registration_id)        
+        ## get all use scores and times for this user
+        rows = db(db.auth_user.course_id == course.id)(student.registration_id == db.useinfo.sid).select(orderby=db.useinfo.sid|db.useinfo.timestamp)
+        curr_session = None
+        prev_row = None
+        THRESH = 600
+        for row in rows:
+            div_id = canonicalize(row.useinfo.div_id)
+            if div_id not in p2a:
+                continue  # ignore activities that aren't associated with any assignment
+            curr_user.add_activity(div_id, row.useinfo.timestamp)
+            if curr_session: # see whether to continue it or close it
+                if curr_session.assignment == p2a[div_id] and (row.useinfo.timestamp - prev_row.useinfo.timestamp).total_seconds() < THRESH:
+                    # continue current session if same assignment and not too much time has passed since last activity
+                    pass
+                else:
+                    # close previous session
+                    curr_session.end = prev_row.useinfo.timestamp + datetime.timedelta(seconds=30)
+                    curr_session = None
+            if not curr_session:
+                # start a new one and add it to sessions list for that assignment for current user
+                curr_session = Session(row.useinfo.timestamp, assignment = p2a[div_id])
+                curr_user.add_session(curr_session, div_id)
+            prev_row = row
+        if not curr_session.end:
+            # close very last session
+            curr_session.end = prev_row.useinfo.timestamp + datetime.timedelta(seconds=30)
+        all_user_data[curr_user.user_id] = curr_user.csv_dict()
     return all_user_data
 
 def assignment_get_scores(assignment, problem=None, user=None, section_id=None, preclass=True):
