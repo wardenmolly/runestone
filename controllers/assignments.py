@@ -466,3 +466,12 @@ def migrate_to_scores():
 	session.flash = "Set %d scores for %d users" % (acid_count, user_count)
 	return redirect(URL("assignments","index"))
 
+@auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
+def download():
+	field_names = ['name','email','ass1']
+	student_data = []
+	student_data.append(['Test','test@test.com',9])
+	response.view='generic.csv'
+	return dict(filename='grades_download.csv', csvdata=student_data,field_names=field_names)
+
+
