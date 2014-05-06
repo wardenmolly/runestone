@@ -476,10 +476,15 @@ def download():
 	field_names = ['Name','Email']
 	regular_assignments = [a for a in assignments if a.assignment_types.grade_type != 'use']
 	use_assignments = [a for a in assignments if a.assignment_types.grade_type == 'use']
+	def sort_key(assignment_name):
+		try:
+			return int(assignment_name.split()[-1])
+		except:
+			return assignment_name
 	for ass in regular_assignments:
 		field_names.append(ass.assignments.name)
 	for postfix in ["_time", "_time_pre_deadline", "_activities", "_activities_pre_deadline", "_max_act"]:
-		for ass in use_assignments:
+		for ass in sorted(use_assignments, key = sort_key):
 			field_names.append(ass.assignments.name+ postfix)
 	
 	student_data = []
