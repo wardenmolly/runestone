@@ -243,7 +243,10 @@ def assignment_get_use_scores(assignment, problem=None, user=None, section_id=No
         pass
     return scores
 
+import logging
+
 def get_all_times_and_activity_counts(course):
+    logging.error('This message should go to the log file')
         
     ## get mapping from problem names (divids) to assignments, and count of problems per assignment
     p2a = {}
@@ -252,16 +255,16 @@ def get_all_times_and_activity_counts(course):
     for p in db(db.assignment_types.id == db.assignments.assignment_type)(db.assignment_types.grade_type == 'use')(db.problems.assignment == db.assignments.id).select():
         p2a[canonicalize(p.problems.acid)] = p.assignments.id
         act_per_ass[p.assignments.id] = act_per_ass.get(p.assignments.id, 0) + 1
-    
+    logging.error("finished p2a mapping")
     def times(assignment, pre_deadline=False):
         sessions = assignment['sessions']
-        if pre_deadline and 'deadline' in assignment:
+        if pre_deadline and 'deadline' in assignment and assignment['deadline']:
             dl = assignment['deadline']
             sessions = [s for s in sessions if s.start < dl]
         return sum([(s.end-s.start).total_seconds() for s in sessions])
     def count(assignment, pre_deadline=False):
         acts = assignment['activities'].values()
-        if pre_deadline and 'deadline' in assignment:
+        if pre_deadline and 'deadline' in assignment and assignment['deadline']:
             dl = assignment['deadline']
             acts = [a for a in acts if a < dl]
         return len(acts)
@@ -311,33 +314,34 @@ def get_all_times_and_activity_counts(course):
     students = db(db.auth_user.course_id == course.id).select(db.auth_user.registration_id)
     all_user_data = {}
     for student in students:
+        logging.error("processing user %s" % student.registration_id)
         curr_user = User_data(student.registration_id)        
         ## get all use scores and times for this user
-        rows = db(db.auth_user.course_id == course.id)(student.registration_id == db.useinfo.sid).select(orderby=db.useinfo.sid|db.useinfo.timestamp)
+        rows = db(db.useinfo.sid == student.registration_id).select(orderby=db.useinfo.timestamp)
         curr_session = None
         prev_row = None
         THRESH = 600
         for row in rows:
-            div_id = canonicalize(row.useinfo.div_id)
+            div_id = canonicalize(row.div_id)
             if div_id not in p2a:
                 continue  # ignore activities that aren't associated with any assignment
-            curr_user.add_activity(div_id, row.useinfo.timestamp)
+            curr_user.add_activity(div_id, row.timestamp)
             if curr_session: # see whether to continue it or close it
-                if curr_session.assignment == p2a[div_id] and (row.useinfo.timestamp - prev_row.useinfo.timestamp).total_seconds() < THRESH:
+                if curr_session.assignment == p2a[div_id] and (row.timestamp - prev_row.timestamp).total_seconds() < THRESH:
                     # continue current session if same assignment and not too much time has passed since last activity
                     pass
                 else:
                     # close previous session
-                    curr_session.end = prev_row.useinfo.timestamp + datetime.timedelta(seconds=30)
+                    curr_session.end = prev_row.timestamp + datetime.timedelta(seconds=30)
                     curr_session = None
             if not curr_session:
                 # start a new one and add it to sessions list for that assignment for current user
-                curr_session = Session(row.useinfo.timestamp, assignment = p2a[div_id])
+                curr_session = Session(row.timestamp, assignment = p2a[div_id])
                 curr_user.add_session(curr_session, div_id)
             prev_row = row
-        if not curr_session.end:
+        if curr_session and not curr_session.end:
             # close very last session
-            curr_session.end = prev_row.useinfo.timestamp + datetime.timedelta(seconds=30)
+            curr_session.end = prev_row.timestamp + datetime.timedelta(seconds=30)
         all_user_data[curr_user.user_id] = curr_user.csv_dict()
     return all_user_data
 
