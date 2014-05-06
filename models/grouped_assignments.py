@@ -243,11 +243,7 @@ def assignment_get_use_scores(assignment, problem=None, user=None, section_id=No
         pass
     return scores
 
-import logging
-
 def get_all_times_and_activity_counts(course):
-    logging.error('This message should go to the log file')
-        
     ## get mapping from problem names (divids) to assignments, and count of problems per assignment
     p2a = {}
     act_per_ass = {}
@@ -255,7 +251,6 @@ def get_all_times_and_activity_counts(course):
     for p in db(db.assignment_types.id == db.assignments.assignment_type)(db.assignment_types.grade_type == 'use')(db.problems.assignment == db.assignments.id).select():
         p2a[canonicalize(p.problems.acid)] = p.assignments.id
         act_per_ass[p.assignments.id] = act_per_ass.get(p.assignments.id, 0) + 1
-    logging.error("finished p2a mapping")
     def times(assignment, pre_deadline=False):
         sessions = assignment['sessions']
         if pre_deadline and 'deadline' in assignment and assignment['deadline']:
@@ -314,7 +309,6 @@ def get_all_times_and_activity_counts(course):
     students = db(db.auth_user.course_id == course.id).select(db.auth_user.registration_id)
     all_user_data = {}
     for student in students:
-        logging.error("processing user %s" % student.registration_id)
         curr_user = User_data(student.registration_id)        
         ## get all use scores and times for this user
         rows = db(db.useinfo.sid == student.registration_id).select(orderby=db.useinfo.timestamp)
