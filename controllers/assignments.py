@@ -484,8 +484,8 @@ def download():
 	for ass in regular_assignments:
 		field_names.append(ass.assignments.name)
 	for postfix in ["_time", "_time_pre_deadline", "_activities", "_activities_pre_deadline", "_max_act"]:
-		for ass in sorted(use_assignments, key = sort_key):
-			field_names.append(ass.assignments.name+ postfix)
+		for nm in sorted([ass.assignments.name for ass in use_assignments], key = sort_key):
+			field_names.append(nm + postfix)
 	
 	student_data = []
 	use_data = get_all_times_and_activity_counts(course)
