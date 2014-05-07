@@ -284,15 +284,17 @@ def detail():
 		return redirect(URL("assignments","index"))
 
 	sections = db(db.sections.course_id == course.id).select(db.sections.ALL)
-	selected_section = None
-	if "section_id" in request.vars:
-		selected_section = int(request.vars.section_id)
-
-
 	students = db(db.auth_user.course_id == course.id)
-	if selected_section:
-		# filter by section
+
+	section_id = None
+	try:
+		section_id = int(request.get_vars.section_id)
+		current_section = [x for x in sections if x.id == section_id][0]
+		students = students((db.sections.id==db.section_users.section) & (db.auth_user.id==db.section_users.auth_user))
+		students = students(db.sections.id == current_section.id)
+	except:
 		pass
+
 	students = students.select(db.auth_user.ALL)
 	problems = db(db.problems.assignment == assignment.id).select(db.problems.ALL)
 	
@@ -306,7 +308,7 @@ def detail():
 	if "acid" in request.vars:
 		acid = request.vars.acid
 
-	scores = assignment.scores(problem = acid, user=student, section_id=selected_section)
+	scores = assignment.scores(problem = acid, user=student, section_id=section_id)
 
 	if acid and not student:
 		fill_empty_scores(scores = scores, students = students, acid=acid)
@@ -314,7 +316,7 @@ def detail():
 		fill_empty_scores(scores = scores, problems = problems, student=student)
 
 	# Used as a convinence function for navigating within the page template
-	def page_args(id=assignment.id, section_id=selected_section, student=student, acid=acid):
+	def page_args(id=assignment.id, section_id=section_id, student=student, acid=acid):
 		arg_str = "?id=%d" % (id)
 		if section_id:
 			arg_str += "&section_id=%d" % section_id
@@ -328,10 +330,10 @@ def detail():
 		assignment = assignment,
 		problems = problems,
 		students = students,
+		sections = sections,
+		section_id = section_id,
 		selected_student = student,
 		scores = scores,
-		sections = sections,
-		selected_section = selected_section,
 		page_args = page_args,
 		selected_acid = acid,
 		course_id = auth.user.course_name,
