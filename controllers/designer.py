@@ -58,13 +58,23 @@ def build():
             date = request.vars.startdate.split('/')
             request.vars.startdate = datetime.date(int(date[2]), int(date[0]), int(date[1]))
 
-        cid = db.courses.update_or_insert(course_name=request.vars.projectname, term_start_date=request.vars.startdate)
+        if not request.vars.institution:
+            institution = "Not Provided"
+        else:
+            institution = request.vars.institution
+        cid = db.courses.update_or_insert(course_name=request.vars.projectname,
+                                          term_start_date=request.vars.startdate,
+                                          institution=institution)
 
         # enrol the user in their new course
         db(db.auth_user.id == auth.user.id).update(course_id = cid)
         db.course_instructor.insert(instructor=auth.user.id, course=cid)
         auth.user.course_id = cid
         auth.user.course_name = request.vars.projectname
+
+        # Create a default section for this course and add the instructor.
+        sectid = db.sections.update_or_insert(name='default',course_id=cid)
+        db.section_users.update_or_insert(auth_user=auth.user.id,section=sectid)
 
         course_url=path.join('/',request.application,"static",request.vars.projectname,"index.html")
 

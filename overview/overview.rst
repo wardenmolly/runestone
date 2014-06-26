@@ -44,6 +44,17 @@ on the video shown below, you will hear us talk about the tools that will be des
     http://media.interactivepython.org/thinkcsVideos/activecodelens.webm
 
 
+
+YouTube
+-------
+
+.. youtube:: anwy2MPT5RE
+    :height: 315
+    :width: 560
+    :align: left
+
+
+
 ActiveCode Windows
 ------------------
 
@@ -262,16 +273,16 @@ next line executed.
 Unit Tests for Code
 -------------------
 
-Its nice to be able to have students solve a particular problem by writing some code, its even better if you can give them some feedback and provide some tests for them.  Much of the ``unittest`` module from Python is available in the ``unittestgui`` module for activecode.  Take a look:
+Its nice to be able to have students solve a particular problem by writing some code, its even better if you can give them some feedback and provide some tests for them.  Much of the ``unittest`` module from Python is available in the ``unittest`` module for activecode.  Take a look:
 
 .. activecode:: units1
 
    def add(a,b):
       return 4
 
-   import unittestgui
+   from unittest.gui import TestCaseGui
 
-   class myTests(unittestgui.unittest):
+   class myTests(TestCaseGui):
 
        def testOne(self):
            self.assertEqual(add(2,2),4,"A feedback string when the test fails")
@@ -447,6 +458,46 @@ Although you don't run HTML, clicking the run button will case the HTML to be re
    </ul>
    </body>
    </html>
+
+
+Blockly
+-------
+
+.. blockly:: blockly1
+
+   * controls
+   controls_if
+   controls_repeat_ext
+   ====
+   * logic
+   logic_compare
+   ====
+   * math
+   math_number
+   math_arithmetic
+   ====
+   * text
+   text
+   text_print
+   ====
+   variables
+
+   preload::
+   <xml>  
+      <block type="variables_set" id="1" inline="true" x="25" y="9">    
+         <field name="VAR">X</field>    
+         <value name="VALUE">      
+            <block type="math_number" id="2">
+               <field name="NUM">10</field>
+            </block>    
+         </value>  
+      </block>
+   </xml>
+
+Add a print statement after the set X to 10.  Click on text and drag out a print block;
+connect it to the set block.  Then click on variables and drag out the X block and
+connect it to the print block.  Now click the run button and you should see 10 printed
+in the gray output area.
 
 
 What To Do Now

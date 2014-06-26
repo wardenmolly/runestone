@@ -39,27 +39,7 @@
 				</div>
 				<div id="assignment-{{=row.assignments.id}}" class="panel-collapse collapse">
 			      <div class="panel-body">
-			      	{{ problems = row.assignments.scores(user = student)}}
-			      	{{ completed_problems = [p for p in problems if p.points > 0]}}
-			      	{{ if type.grade_type == 'use':}}
-                  {{ time = row.assignments.time(user=student)}}
-			      	<p>You spent {{= "%.1f" % (time/60.0)}} minutes on activities related to preparing for this session.</p>
-			      	<p>You completed {{=len(completed_problems)}} activities. You needed to do {{=row.assignments.threshold}} to get full credit.</p>
-			      	{{ pass }}
-			      	<ul class="list-group">
-			      	{{for problem in problems:}}
-			      		<li class="list-group-item">
-			      			<span class="badge">{{=problem.points}}</span>
-			      			<h4>{{=problem.acid}}</h4>
-			      			{{if problem.comment:}}
-			      			<p>{{=problem.comment}}</p>
-			      			{{pass}}
-			      		</li>
-			      	{{pass}}
-			      	{{ if len(problems) < 1: }}
-			      		<div class="alert alert-info">No Problems Recorded</div>
-			      	{{pass}}
-			      	</ul>
+
 			      </div>
 				</div>
 			</div><!-- end .panel -->

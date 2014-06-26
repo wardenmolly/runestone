@@ -24,7 +24,6 @@ For this week you have the following graded activities:
       * Review slides ``HTTP and urllib2 and TryExcept`` in cTools resources/Slides
       * get the code file lectures/session18.py via Bitbucket.org
          * ``git pull upstream master``
-
       * answer :ref:`questions about session18.py <session18>`
    
    * Before Thursday's class:
@@ -32,7 +31,6 @@ For this week you have the following graded activities:
       * get the code file lectures/session19.py via Bitbucket.org
          * ``git pull upstream master``
       * answer :ref:`questions about session19.py <session19>`
-
 
 #. Turn in the reading response, by 8 PM the night before your registered section meets.
 
@@ -153,4 +151,4 @@ Write code to pick out the "owner" of the third photo retrieved in the flickrdem
 .. actex:: session19_3
 
    # Paste your code here
-
+   

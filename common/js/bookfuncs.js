@@ -80,7 +80,7 @@ function createEditors() {
     for (var i = 0; i < edList.length; i++) {
         newEdId = edList[i].id;
         var includes = edList[i].getAttribute('prefixcode');
-        var lang = edList[i].getAttribute('lang');
+        var lang = edList[i].getAttribute('lang') || "python";
         var first_line = 1;
         if (includes !== "undefined") {
             includes = eval(includes)
@@ -92,9 +92,10 @@ function createEditors() {
             first_line = 1;
         }
         cm_editors[newEdId] = CodeMirror.fromTextArea(edList[i], {
-                                                          mode: {name: lang,
-                                                              version: 2,
-                                                              singleLineStringErrors: false},
+                                                          mode: { name: lang,
+                                                                  version: 2,
+                                                                  singleLineStringErrors: false
+                                                                },
                                                           lineNumbers: true,
                                                           firstLineNumber: first_line,
                                                           indentUnit: 4,
@@ -104,10 +105,20 @@ function createEditors() {
                                                           onKeyEvent: handleEdKeys
                                                       }
         );
+        
         cm_editors[newEdId].parentDiv = edList[i].parentNode.parentNode.id;
         //requestCode(edList[i].parentNode.id) // populate with user's code
     }
 
+    // allow ActiveCode editors to be dynamically resized by user
+    $('.CodeMirror').each(function (_, cmNode) {
+        $(cmNode).resizable({
+            resize: function() {
+                cmNode.CodeMirror.setSize($(this).width(), $(this).height());
+                cmNode.CodeMirror.refresh();
+            }
+        });
+    });
 }
 
 function builtinRead(x) {
@@ -117,7 +128,7 @@ function builtinRead(x) {
 }
 
 function createActiveCode(divid,suppliedSource,sid) {
-    var eNode;
+    var edNode;
     var acblockid;
     if (sid !== undefined) {
         acblockid = divid + "_" + sid;
@@ -126,6 +137,7 @@ function createActiveCode(divid,suppliedSource,sid) {
     }
 
     edNode = document.getElementById(acblockid);
+    edNode.lang = edNode.lang || 'python'
     if (edNode.children.length == 0 ) {
         //edNode.style.display = 'none';
         edNode.style.backgroundColor = "white";
@@ -275,7 +287,7 @@ function runit(myDiv, theButton, includes, suffix) {
     // configure Skulpt output function, and module reader
     Sk.configure({output: outf,
                      read: builtinRead,
-                     python3: false
+                     python3: true
                  });
     var lang = document.getElementById(myDiv).lang;
     try {
@@ -537,6 +549,7 @@ function gotUser(data, status, whatever) {
         if (!caughtErr) {
             mess = d.email;
             eBookConfig.isLoggedIn = true;
+			eBookConfig.cohortId = d.cohortId;
             addNavbarLoginLink(); // will change navbar login link to say 'Log Out'
             enableUserHighlights();
             timedRefresh();
@@ -595,6 +608,18 @@ function addUserToFooter() {
 
 function addNavbarLoginLink() {
     if (isLoggedIn()) {
+		if (eBookConfig.cohortId == null || eBookConfig.cohortId ==""){
+			$('#joinGroupLink').show();
+			$('#groupScheduleLink').hide();
+			$('#newChapterLink').hide();
+			$('#manageGroupLink').hide();
+		}
+		else{
+			$('#joinGroupLink').hide();
+			$('#groupScheduleLink').show();
+			$('#newChapterLink').show();
+			$('#manageGroupLink').show();
+		}
         $('#profilelink').show();
         $('#passwordlink').show();
         $('#registerlink').hide();
@@ -842,9 +867,9 @@ function createScratchActivecode() {
         '        <h4 class="modal-title">Scratch ActiveCode</h4>' +
         '      </div> ' +
         '      <div class="modal-body">' +
-        '        <div id="' + divid + '">' +
+        '        <div id="' + divid + '" lang="python">' +
         '          <div id="' + divid + '_code_div" style="display: block">' +
-        '            <textarea cols="50" rows="12" id="' + divid + '_code" class="active_code">\n\n\n\n\n</textarea>' +
+        '            <textarea cols="50" rows="12" lang="python" id="' + divid + '_code" class="active_code">\n\n\n\n\n</textarea>' +
         '          </div>' +
         '          <p class="ac_caption"><span class="ac_caption_text">Scratch Editor</span> </p>' +
 

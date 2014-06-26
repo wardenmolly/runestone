@@ -279,6 +279,7 @@ def buildmodulelist():
     session.flash = 'Module Database Rebuild Finished'
     redirect('/%s/admin'%request.application)
 
+
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
 def sections_list():
     course = db(db.courses.id == auth.user.course_id).select().first()
@@ -289,10 +290,6 @@ def sections_list():
         sections = sections
         )
 
-
-def diffviewer():
-    return dict(course_id="overview")
-    
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
 def sections_create():
     course = db(db.courses.id == auth.user.course_id).select().first()
@@ -362,4 +359,3 @@ def sections_update():
         users = section.get_users(),
         bulk_email_form = bulk_email_form,
         )
-

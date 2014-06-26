@@ -64,3 +64,4 @@ db.define_table('course_instructor',
     Field('instructor', db.auth_user),
     migrate='runestone_course_instructor.table'
 )
+

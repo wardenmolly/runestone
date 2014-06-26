@@ -186,6 +186,7 @@ def run_sphinx(rvars=None, folder=None, application=None, http_host=None):
     tags = []
 
     sys.path.insert(0,path.join(folder,'modules'))
+    from chapternames import addChapterInfoFromScheduler, findChaptersSubChapters
 
     force_all = True
     filenames = []
@@ -194,6 +195,13 @@ def run_sphinx(rvars=None, folder=None, application=None, http_host=None):
                 confoverrides, status, warning, freshenv,
                 warningiserror, tags)
     app.build(force_all, filenames)
+
+    if rvars['coursetype'] == 'thinkcspy':
+        idxname = 'toc.rst'
+    else:
+        idxname = 'index.rst'
+    scd, ct = findChaptersSubChapters(path.join(sourcedir, idxname))
+    addChapterInfoFromScheduler(scd, ct, rvars['projectname'],db)
 
     shutil.rmtree(sourcedir)
 
