@@ -290,6 +290,10 @@ def sections_list():
         sections = sections
         )
 
+
+def diffviewer():
+    return dict(course_id="overview")
+    
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
 def sections_create():
     course = db(db.courses.id == auth.user.course_id).select().first()
