@@ -33,7 +33,7 @@
     </script>
   </head>
 <body>
-
+{{ block navbar }}
 <!-- needed for Facebook button -->
 <div id="fb-root"></div>
 <script>(function(d, s, id) {
@@ -195,16 +195,7 @@
           </ul>
         </li>
 
-        <li class="divider-vertical"></li>
 
-        <!-- authors and developers dropdown -->
-        <li class="dropdown">
-          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Authors & Developers<b class="caret"></b></a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="http://runestoneinteractive.org">Source for everything</a></li>
-            <li><a href="http://docs.runestoneinteractive.org/build/html/index.html">Documentation</a></li>
-          </ul>
-        </li>
 
         <li class="divider-vertical"></li>
 
@@ -215,7 +206,7 @@
 
 </div>
 <!-- End navbar -->
-
+{{ end }}
 
 <!-- begin body content -->
   <div class="container">
@@ -223,6 +214,7 @@
   </div>
 <!-- end body content -->
 
+{{ block footer }}
 <!-- begin footer -->
   <footer class="footer" style="margin-top:20px;">
     <div class="container">
@@ -234,11 +226,12 @@
         {{ pass }}
       </p>
       <p>
-        &copy; Copyright 2013 Brad Miller, David Ranum
+        &copy; Copyright 2014 Brad Miller, David Ranum
       </p>
     </div>
   </footer>
 <!-- end footer -->
+{{ end }}
 
 </body>
 <script type='text/javascript'>

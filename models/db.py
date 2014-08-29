@@ -66,6 +66,7 @@ db.define_table('courses',
   Field('course_name', 'string', unique=True),
   Field('term_start_date', 'date'),
   Field('institution', 'string'),
+  Field('base_course', 'string'),
   migrate='runestone_courses.table'
 )
 if db(db.courses.id > 0).isempty():
@@ -86,6 +87,7 @@ db.define_table('cohort_master',
   writable=False,readable=False),
   Field('is_active','integer', #0 - deleted / inactive. 1 - active
   writable=False,readable=False),
+  Field('course_name', 'string'),
   migrate='runestone_cohort_master.table'
   )
 if db(db.cohort_master.id > 0).isempty():
@@ -190,6 +192,9 @@ auth.settings.registration_requires_approval = False
 auth.settings.reset_password_requires_verification = True
 
 auth.settings.register_next = URL('default', 'index')
+
+# change default session login time from 1 hour to 24 hours
+auth.settings.expiration = 3600*24
 
 ## if you need to use OpenID, Facebook, MySpace, Twitter, Linkedin, etc.
 ## register with janrain.com, write your domain:api_key in private/janrain.key

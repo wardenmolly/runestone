@@ -48,7 +48,7 @@ div.section {
 	padding-left:0;
 	padding-right:0;
 }
- .container  .section >*:not(.section){
+ .container  .section >*:not(.section) {
 	max-width: 500pt;
 	margin-left: auto;
 	margin-right: auto;
@@ -130,6 +130,14 @@ div.section {
     margin: 0 0 1em 0;
     background-color: #fff;
 	clear:both;
+}
+
+.CodeMirror-scroll {
+    /* this allows CM elements to be resized to (almost) any 
+     * height while still relying on max-height (which keeps 
+     * the CM editors to no more than the size needed 
+     * unless resized) */
+    max-height: 9999px;
 }
 
 button.btn, btn.btn-sm,
@@ -503,4 +511,12 @@ iframe[seamless] {
 	.container  .section>div.sidebar {
 		margin: 0 18em 0.5em 1em;
 	}
+}
+
+
+div.ExecutionVisualizer table.visualizer {
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #fff;
 }

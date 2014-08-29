@@ -3,16 +3,30 @@ import datetime
 import logging
 import time
 from collections import Counter
+from diff_match_patch import *
+import os, sys
+# kind of a hacky approach to import coach functions
+sys.path.insert(0,os.path.dirname(__file__))
+from coach import get_lint
 
 logger = logging.getLogger("web2py.app.eds")
 logger.setLevel(logging.DEBUG)
 
 response.headers['Access-Control-Allow-Origin'] = '*'
 
+
+def compareAndUpdateCookieData(sid):
+    if request.cookies.has_key('ipuser') and request.cookies['ipuser'].value != sid:
+        db.useinfo(db.useinfo.sid == request.cookies['ipuser'].value).update(sid=sid)
+
 def hsblog():    # Human Subjects Board Log
     setCookie = False
     if auth.user:
         sid = auth.user.username
+        compareAndUpdateCookieData(sid)
+        setCookie = True    # we set our own cookie anyway to eliminate many of the extraneous anonymous
+                            # log entries that come from auth timing out even but the user hasn't reloaded
+                            # the page.
     else:
         if request.cookies.has_key('ipuser'):
             sid = request.cookies['ipuser'].value
@@ -39,6 +53,7 @@ def runlog():    # Log errors and runs with code
     setCookie = False
     if auth.user:
         sid = auth.user.username
+        setCookie = True
     else:
         if request.cookies.has_key('ipuser'):
             sid = request.cookies['ipuser'].value
@@ -57,8 +72,9 @@ def runlog():    # Log errors and runs with code
     else:
         act = 'run'
         event = 'activecode'
-    db.acerror_log.insert(sid=sid,div_id=div_id,timestamp=ts,course_id=course,code=code,emessage=error_info)
+    dbid = db.acerror_log.insert(sid=sid,div_id=div_id,timestamp=ts,course_id=course,code=code,emessage=error_info)
     db.useinfo.insert(sid=sid,act=act,div_id=div_id,event=event,timestamp=ts,course_id=course)
+    lintAfterSave(dbid, code, div_id, sid)
     response.headers['content-type'] = 'application/json'
     res = {'log':True}
     if setCookie:
@@ -73,11 +89,35 @@ def runlog():    # Log errors and runs with code
 #
 
 def saveprog():
+    user = auth.user
+    if not user:
+        return json.dumps(["ERROR: auth.user is not defined.  Copy your code to the clipboard and reload or logout/login"])
+    course = db(db.courses.id == auth.user.course_id).select().first()
+
     acid = request.vars.acid
     code = request.vars.code
 
-    response.headers['content-type'] = 'application/json'
+    now = datetime.datetime.now()
 
+    response.headers['content-type'] = 'application/json'
+    def strip_suffix(id):
+        idx = id.rfind('-') - 1
+        return id[:idx]
+    assignment = db(db.assignments.id == db.problems.assignment)(db.problems.acid == acid).select(db.assignments.ALL).first()
+    
+    section_users = db((db.sections.id==db.section_users.section) & (db.auth_user.id==db.section_users.auth_user))
+    section = section_users(db.auth_user.id == user.id).select(db.sections.ALL).first()
+        
+    if assignment:
+        q = db(db.deadlines.assignment == assignment.id)
+        if section:
+            q = q((db.deadlines.section == section.id) | (db.deadlines.section==None))
+        else:
+            q = q(db.deadlines.section==None)
+        dl = q.select(db.deadlines.ALL, orderby=db.deadlines.section).first()
+        if dl:
+            if dl.deadline < now:
+                return json.dumps(["ERROR: Sorry. The deadline for this assignment has passed. The deadline was %s" % (dl.deadline)])
     try:
         db.code.insert(sid=auth.user.username,
             acid=acid,code=code,
@@ -494,8 +534,23 @@ def getSphinxBuildStatus():
     task_name = request.vars.task_name
     course_url = request.vars.course_url
 
+    courseid = course_url.replace('/'+request.application+'/static/','')
+    courseid = courseid.replace('/index.html', '')
+    confdir = os.path.join(os.getcwd(), 'applications', request.application, 'custom_courses', courseid, 'done')
+
+
     row = scheduler.task_status(task_name)
-    st= row['status']
+
+    if os.path.exists(confdir):
+        os.remove(confdir)
+        try:
+            db(db.scheduler_run.task_id == row.id).update(status='COMPLETED')
+            db(db.scheduler_task.id == row.id).update(status='COMPLETED')
+        except:
+            pass
+        return dict(status='true', course_url=course_url)
+
+    st = row['status']
 
     if st == 'COMPLETED':
         status = 'true'
@@ -545,3 +600,98 @@ def getassignmentgrade():
         ret['count'] = rows[0][1]
 
     return json.dumps([ret])
+
+
+def diff_prettyHtml(self, diffs):
+    """Convert a diff array into a pretty HTML report.
+
+    Args:
+      diffs: Array of diff tuples.
+
+    Returns:
+      HTML representation.
+    """
+    html = []
+    ct = 1
+    for (op, data) in diffs:
+        text = (data.replace("&", "&amp;").replace("<", "&lt;")
+                .replace(">", "&gt;").replace("\n", "<br>"))
+        if op == self.DIFF_INSERT:
+            html.append("<ins style=\"background:#e6ffe6;\">%s</ins>" % text)
+        elif op == self.DIFF_DELETE:
+            html.append("<del style=\"background:#ffe6e6;\">%s</del>" % text)
+        elif op == self.DIFF_EQUAL:
+            html.append("<span>%s</span>" % text)
+    return "".join(html)
+
+
+def getCodeDiffs():
+    if auth.user:
+        sid = auth.user.username
+    else:
+        sid = request.vars['sid']
+    divid = request.vars['divid']
+    q = '''select timestamp, sid, div_id, code, emessage, id
+           from acerror_log 
+           where sid = '%s' and course_id = '%s' and div_id='%s'
+           order by timestamp
+    ''' % (sid, auth.user.course_name, divid)
+
+    rows = db.executesql(q)
+    if len(rows) < 1:
+        return json.dumps(dict(timestamps=[0], code=[''],
+                               diffs=[''],
+                               mess=['No Coaching hints yet.  You need to run the example at least once.'],
+                               chints=['']))
+
+    differ = diff_match_patch()
+    ts = []
+    newcode = []
+    diffcode = []
+    messages = []
+    coachHints = []
+
+    diffs = differ.diff_lineMode(rows[0][3], rows[0][3], True)
+    diffcode.append(differ.diff_prettyHtml(diffs).replace('&para;', ''))
+    newcode.append(rows[0][3])
+    ts.append(str(rows[0][0]))
+    coachHints.append(getCoachingHints(int(rows[0][5])))
+    messages.append(rows[0][4].replace("success",""))
+
+    for i in range(1,len(rows)):
+        diffs = differ.diff_lineMode(rows[i-1][3], rows[i][3],True)
+        ts.append(str(rows[i][0]))
+        newcode.append(rows[i][3])
+        diffcode.append(diff_prettyHtml(differ,diffs).replace('&para;', ''))
+        messages.append(rows[i][4].replace("success", ""))
+        coachHints.append(getCoachingHints(int(rows[i][5])))
+    return json.dumps(dict(timestamps=ts,code=newcode,diffs=diffcode,mess=messages,chints=coachHints))
+
+
+def getCoachingHints(ecId):
+    catToTitle = {"C": "Coding Conventions", "R": "Good Practice", "W": "Minor Programming Issues",
+                  "E": "Serious Programming Error", "F": "Fatal Errors"}
+
+    rows = db.executesql("select category,symbol,line,msg from coach_hints where source=%d order by category, line" % ecId)
+    res = ''
+    cat = ''
+    for row in rows:
+        if row[0] != cat:
+            res += '<h2>%s</h2>' % catToTitle[row[0]]
+            cat = row[0]
+        res += "Line: %d %s %s <br>" % (row[2], row[1], row[3])
+    return res
+
+
+def lintAfterSave(dbid, code, div_id, sid):
+    #dbid = request.args.id
+    #entry = db(db.acerror_log.id == dbid).select().first()
+    pylint_stdout = get_lint(code, div_id, sid)
+
+    for line in pylint_stdout:
+        g = re.match(r"^([RCWEF]):\s(.*?):\s([RCWEF]\d+):\s+(\d+),(\d+):(.*?):\s(.*)$", line)
+        if g:
+            db.coach_hints.insert(category=g.group(1), symbol=g.group(2), msg_id=g.group(3),
+                                  line=g.group(4), col=g.group(5), obj=g.group(6),
+                                  msg=g.group(7).replace("'", ""), source=dbid)
+

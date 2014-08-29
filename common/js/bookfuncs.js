@@ -92,9 +92,10 @@ function createEditors() {
             first_line = 1;
         }
         cm_editors[newEdId] = CodeMirror.fromTextArea(edList[i], {
-                                                          mode: {name: lang,
-                                                              version: 2,
-                                                              singleLineStringErrors: false},
+                                                          mode: { name: lang,
+                                                                  version: 2,
+                                                                  singleLineStringErrors: false
+                                                                },
                                                           lineNumbers: true,
                                                           firstLineNumber: first_line,
                                                           indentUnit: 4,
@@ -104,10 +105,20 @@ function createEditors() {
                                                           onKeyEvent: handleEdKeys
                                                       }
         );
+        
         cm_editors[newEdId].parentDiv = edList[i].parentNode.parentNode.id;
         //requestCode(edList[i].parentNode.id) // populate with user's code
     }
 
+    // allow ActiveCode editors to be dynamically resized by user
+    $('.CodeMirror').each(function (_, cmNode) {
+        $(cmNode).resizable({
+            resize: function() {
+                cmNode.CodeMirror.setSize($(this).width(), $(this).height());
+                cmNode.CodeMirror.refresh();
+            }
+        });
+    });
 }
 
 function builtinRead(x) {
@@ -117,7 +128,7 @@ function builtinRead(x) {
 }
 
 function createActiveCode(divid,suppliedSource,sid) {
-    var eNode;
+    var edNode;
     var acblockid;
     if (sid !== undefined) {
         acblockid = divid + "_" + sid;
@@ -126,6 +137,7 @@ function createActiveCode(divid,suppliedSource,sid) {
     }
 
     edNode = document.getElementById(acblockid);
+    edNode.lang = edNode.lang || 'python'
     if (edNode.children.length == 0 ) {
         //edNode.style.display = 'none';
         edNode.style.backgroundColor = "white";
@@ -233,6 +245,8 @@ function runit(myDiv, theButton, includes, suffix) {
         Sk.runButton = theButton;
     }
     $("#" + myDiv + "_errinfo").remove();
+    $("#" + myDiv + "_coach_div").hide();
+
     var editor = cm_editors[myDiv + "_code"];
     if (editor.acEditEvent) {
         logBookEvent({'event': 'activecode', 'act': 'edit', 'div_id': myDiv}); // Log the edit event
@@ -944,4 +958,91 @@ function createGradeSummary(div_id) {
     var data = {'div_id':div_id}
     jQuery.get(eBookConfig.ajaxURL + 'getassignmentgrade', data, showGradeSummary);
 
+}
+function hideCodelens(button, div_id) {
+    var div = document.getElementById(div_id+'_codelens_div')
+    div.style.display='none'
+
+}
+
+function injectCodelens(button, div_id) {
+    var div = document.getElementById(div_id+'_codelens_div')
+    if (div.style.display == 'none') {
+        div.style.display = 'block';
+        button.innerText = "Hide Codelens";
+    } else {
+        div.style.display = "none";
+        button.innerText = "Show in Codelens";
+        return;
+    }
+
+    var cl = document.getElementById(div_id+'_codelens')
+    if (cl ) {
+        div.removeChild(cl)
+    }
+    var editor = cm_editors[div_id + "_code"]
+    var code = editor.getValue()
+    var myVars = {}
+    myVars.code = code
+    myVars.origin = "opt-frontend.js"
+    myVars.cumulative = false
+    myVars.heapPrimitives = false
+    myVars.drawParentPointers=false
+    myVars.textReferences = false
+    myVars.showOnlyOutputs=false
+    myVars.rawInputLstJSON = JSON.stringify([])
+    myVars.py = 2
+    myVars.curInstr = 0
+    myVars.codeDivWidth = 350
+    myVars.codeDivHeight = 400
+    var srcURL = 'http://pythontutor.com/iframe-embed.html'
+    var embedUrlStr = $.param.fragment(srcURL, myVars, 2 /* clobber all */)
+    var myIframe = document.createElement('iframe')
+    myIframe.setAttribute("id",div_id+'_codelens')
+    myIframe.setAttribute("width","800")
+    myIframe.setAttribute("height","500")
+    myIframe.setAttribute("style","display:block")
+    myIframe.style.background = '#fff'
+    //myIframe.setAttribute("src",srcURL)
+    myIframe.src = embedUrlStr
+    div.appendChild(myIframe)
+    logBookEvent({
+                     'event': 'codelens',
+                     'act': 'view',
+                     'div_id': div_id
+                 });
+
+}
+
+// <iframe id="%(divid)s_codelens" width="800" height="500" style="display:block"src="#">
+// </iframe>
+
+
+function injectCodeCoach(div_id) {
+    var myIframe;
+    var srcURL;
+    var cl;
+    var div = document.getElementById(div_id+'_coach_div')
+    div.style.display='block'
+    cl = document.getElementById(div_id+'_coach')
+    if (cl ) {
+        div.removeChild(cl)
+    }
+
+    srcURL = eBookConfig.app + '/admin/diffviewer?divid='+div_id;
+    myIframe = document.createElement('iframe');
+    myIframe.setAttribute("id",div_id+'_coach');
+    myIframe.setAttribute("width","800px");
+    myIframe.setAttribute("height","500px");
+    myIframe.setAttribute("style","display:block");
+    myIframe.style.background = '#fff';
+    myIframe.style.width = "100%"
+    //myIframe.setAttribute("src",srcURL)
+    myIframe.src = srcURL;
+    div.appendChild(myIframe);
+    logBookEvent({
+                     'event': 'coach',
+                     'act': 'view',
+                     'div_id': div_id
+                 });
 }

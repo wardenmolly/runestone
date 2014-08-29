@@ -1,8 +1,9 @@
 from os import path
 import os
-import shutil
-import sys
-from sphinx.application import Sphinx
+import pygal
+from datetime import date, timedelta
+
+
 
 # this is for admin links
 # use auth.requires_membership('manager')
@@ -16,7 +17,7 @@ from sphinx.application import Sphinx
 # select acid, sid from code as T where timestamp = (select max(timestamp) from code where sid=T.sid and acid=T.acid);
 
 
-@auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
+@auth.requires_login()
 def index():
     row = db(db.courses.id == auth.user.course_id).select(db.courses.course_name).first()
     # get current build info
@@ -43,7 +44,27 @@ def index():
         if my_vers != mst_vers:
             response.flash = "Updates available, consider rebuilding"
 
-    return dict(build_info=my_build, master_build=master_build, my_vers=my_vers, mst_vers=mst_vers )
+    # Now build the activity bar chart
+    bar_chart = pygal.Bar(disable_xml_declaration=True, explicit_size=True,
+                          show_legend=False, height=400, width=400,
+                          style=pygal.style.TurquoiseStyle)
+    bar_chart.title = 'Class Activities'
+    bar_chart.x_labels = []
+    counts = []
+
+    d = date.today() - timedelta(days=10)
+    query = '''select date(timestamp) xday, count(*)  ycount from useinfo where timestamp > '%s' and course_id = '%s' group by date(timestamp) order by xday''' % (d, row.course_name)
+    rows = db.executesql(query)
+    for row in rows:
+        bar_chart.x_labels.append(str(row[0]))
+        counts.append(row[1])
+
+    bar_chart.add('Class', counts)
+    chart = bar_chart.render()
+
+
+    return dict(build_info=my_build, master_build=master_build, my_vers=my_vers,
+                mst_vers=mst_vers, bchart=chart, course_name=auth.user.course_name)
 
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
 def listassignments():
@@ -231,8 +252,9 @@ def rebuildcourse():
         course.update_record(term_start_date=date)
         
         # run_sphinx in defined in models/scheduler.py
-        row = scheduler.queue_task(run_sphinx, timeout=300, pvars=dict(folder=request.folder,
+        row = scheduler.queue_task(run_sphinx, timeout=120, pvars=dict(folder=request.folder,
                                                                        rvars=request.vars,
+                                                                       base_course=course.base_course,
                                                                        application=request.application,
                                                                        http_host=request.env.http_host))
         uuid = row['uuid']
@@ -280,4 +302,133 @@ def buildmodulelist():
     redirect('/%s/admin'%request.application)
 
 
+@auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
+def sections_list():
+    course = db(db.courses.id == auth.user.course_id).select().first()
+    sections = db(db.sections.course_id == course.id).select()
+    # get all sections - for course, list number of users in each section
+    return dict(
+        course = course,
+        sections = sections
+        )
+
+@auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
+def sections_create():
+    course = db(db.courses.id == auth.user.course_id).select().first()
+    form = FORM(
+        DIV(
+            LABEL("Section Name", _for="section_name"),
+            INPUT(_id="section_name" ,_name="name", requires=IS_NOT_EMPTY(),_class="form-control"),
+            _class="form-group"
+            ),
+        INPUT(_type="Submit", _value="Create Section", _class="btn"),
+        )
+    if form.accepts(request,session):
+        section = db.sections.update_or_insert(name=form.vars.name, course_id=course.id)
+        session.flash = "Section Created"
+        return redirect('/%s/admin/sections_update?id=%d' % (request.application, section.id))
+    return dict(
+        form = form,
+        )
+
+@auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
+def sections_delete():
+    course = db(db.courses.id == auth.user.course_id).select().first()
+    section = db(db.sections.id == request.vars.id).select().first()
+    if not section or section.course_id != course.id:
+        return redirect(URL('admin','sections_list'))
+    section.clear_users()
+    session.flash = "Deleted Section: %s" % (section.name)
+    db(db.sections.id == section.id).delete()
+    return redirect(URL('admin','sections_list'))
+
+@auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
+def sections_update():
+    course = db(db.courses.id == auth.user.course_id).select().first()
+    section = db(db.sections.id == request.vars.id).select().first()
+    if not section or section.course_id != course.id:
+        redirect(URL('admin','sections_list'))
+    bulk_email_form = FORM(
+        DIV(
+            TEXTAREA(_name="emails_csv",
+                requires=IS_NOT_EMPTY(),
+                _class="form-control",
+                ),
+            _class="form-group",
+            ),
+        LABEL(
+            INPUT(_name="overwrite", _type="Checkbox"),
+            "Overwrite Users In Section",
+            _class="checkbox",
+            ),
+        INPUT(_type='Submit', _class="btn", _value="Update Section"),
+        )
+    if bulk_email_form.accepts(request,session):
+        if bulk_email_form.vars.overwrite:
+            section.clear_users()
+        users_added_count = 0
+        for email_address in bulk_email_form.vars.emails_csv.split(','):
+            user = db(db.auth_user.email == email_address.lower()).select().first()
+            if user:
+                if section.add_user(user):
+                    users_added_count += 1
+        session.flash = "%d Emails Added" % (users_added_count)
+        return redirect('/%s/admin/sections_update?id=%d' % (request.application, section.id))
+    elif bulk_email_form.errors:
+        response.flash = "Error Processing Request"
+    return dict(
+        section = section,
+        users = section.get_users(),
+        bulk_email_form = bulk_email_form,
+        )
+
+def diffviewer():
+    sid = ""
+    div_id = request.vars.divid
+    if auth.user:
+        sid = auth.user.username
+    return dict(course_id="overview", sid=sid, divid=div_id)
+
+
+
+@auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
+def cohortprogress():
+    course = db(db.courses.id == auth.user.course_id).select().first()
+    cohort = db(db.cohort_master.course_name == course.course_name).select(db.cohort_master.cohort_name)
+    cohort_plan = db( (db.cohort_plan.cohort_id == db.cohort_master.id) &
+                      (db.cohort_plan.chapter_id == db.chapters.id)).select(db.cohort_master.cohort_name,
+                                                                             db.chapters.chapter_name,
+                                                                             db.cohort_plan.start_date,
+                                                                             db.cohort_plan.end_date,
+                                                                             db.cohort_plan.actual_end_date,
+                                                                             db.cohort_plan.status,
+                                                                             orderby=db.cohort_master.cohort_name|db.cohort_plan.start_date)
+
+    return dict(grid=cohort_plan, course_id=course.course_name)
+
+
+@auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
+def editcustom():
+    course_name = auth.user.course_name
+    custom_file = request.args[0]
+    assignfile = open(path.join('applications', request.application,
+                                'custom_courses', course_name, custom_file+'.rst'), 'r')
+
+    form = FORM(TEXTAREA(_id='text', _name='text', value=assignfile.read()),
+                INPUT(_type='submit', _value='submit'))
+
+    assignfile.close()
+
+    if form.process().accepted:
+        session.flash = 'File Updated'
+        assignfile = open(path.join('applications', request.application,
+                                    'custom_courses', course_name, custom_file+'.rst'), 'w')
+        assignfile.write(request.vars.text)
+        assignfile.close()
+        redirect(URL('index'))
+    elif form.errors:
+        response.flash = 'Assignments has errors'
+
+
+    return dict(form=form)
 

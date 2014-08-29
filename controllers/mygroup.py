@@ -4,16 +4,35 @@ import pprint
 import json
 import collections
 
+
 def schedule():
     if auth.user == None:
         redirect(URL('default', 'user/login'))
     else:
-        allProgress = db((db.user_sub_chapter_progress.chapter_id==db.chapters.chapter_label)&(db.user_sub_chapter_progress.user_id==db.auth_user.id)).select(db.user_sub_chapter_progress.ALL, db.chapters.ALL, db.auth_user.ALL)
-        allUsers = db(db.auth_user.cohort_id==auth.user.cohort_id).select(db.auth_user.ALL)
-        allComments = db(db.user_comments.cohort_id==auth.user.cohort_id).select(orderby=~db.user_comments.id|db.user_comments.ALL)
-        allPlans = db((db.cohort_plan.chapter_id==db.chapters.id) & (db.cohort_plan.cohort_id==auth.user.cohort_id)).select(db.chapters.id, db.chapters.chapter_label, db.chapters.chapter_name, db.cohort_plan.status , db.cohort_plan.start_date , db.cohort_plan.end_date, db.cohort_plan.actual_end_date, db.cohort_plan.note, db.cohort_plan.created_by, db.cohort_plan.cohort_id, db.cohort_plan.id)
+        allProgress = db((db.user_sub_chapter_progress.chapter_id == db.chapters.chapter_label) &
+                         (db.user_sub_chapter_progress.user_id == db.auth_user.id) &
+                         (db.auth_user.cohort_id == auth.user.cohort_id)).select(db.user_sub_chapter_progress.ALL,
+                                                                                db.chapters.ALL,
+                                                                                db.auth_user.ALL)
+
+        allUsers = db(db.auth_user.cohort_id == auth.user.cohort_id).select(db.auth_user.ALL)
+
+        allComments = db(db.user_comments.cohort_id == auth.user.cohort_id).select(orderby=~db.user_comments.id|db.user_comments.ALL)
+
+        allPlans = db((db.cohort_plan.chapter_id == db.chapters.id) &
+                      (db.cohort_plan.cohort_id == auth.user.cohort_id)).select(db.chapters.id,
+                                                                                db.chapters.chapter_label,
+                                                                                db.chapters.chapter_name,
+                                                                                db.cohort_plan.status ,
+                                                                                db.cohort_plan.start_date ,
+                                                                                db.cohort_plan.end_date,
+                                                                                db.cohort_plan.actual_end_date,
+                                                                                db.cohort_plan.note,
+                                                                                db.cohort_plan.created_by,
+                                                                                db.cohort_plan.cohort_id,
+                                                                                db.cohort_plan.id)
         for plan in allPlans:
-            if plan.cohort_plan.status=='new' and plan.cohort_plan.start_date<datetime.datetime.now():
+            if plan.cohort_plan.status=='new' and plan.cohort_plan.start_date < datetime.datetime.now().date():
                 plan.cohort_plan.status='active'
                 db((db.cohort_plan.chapter_id==plan.chapters.id) & (db.cohort_plan.cohort_id==auth.user.cohort_id)).update(status='active')
             for user in allUsers:
@@ -21,24 +40,23 @@ def schedule():
                 total=0
                 for progress in allProgress:
                     if int(progress.user_sub_chapter_progress.user_id)==user.id and progress.chapters.id==plan.chapters.id: 
-                        if(progress.user_sub_chapter_progress.status>0):
-                            count+=1
-                        total+=1
-                result= round(count*100/total)
+                        if progress.user_sub_chapter_progress.status > 0:
+                            count += 1
+                        total += 1
+                result = round(count*100/total)
                 db((db.user_chapter_progress.user_id==user.id) & (db.user_chapter_progress.chapter_id==plan.chapters.id)).update(status=result)
+
             userProgress = db(db.user_chapter_progress.chapter_id==plan.chapters.id).select(db.user_chapter_progress.status)
             completed = True
+
             for progress in userProgress:
                 if progress.status<100:
                     completed=False
-            '''if completed == True:
-                plan.cohort_plan.status='completed'
-                plan.cohort_plan.actual_end_date=datetime.datetime.now()
-                db((db.cohort_plan.chapter_id==plan.chapters.id) & (db.cohort_plan.cohort_id==auth.user.cohort_id)).update(status='completed')
-                db((db.cohort_plan.chapter_id==plan.chapters.id) & (db.cohort_plan.cohort_id==auth.user.cohort_id)).update(actual_end_date=datetime.datetime.now())'''
-        allUserProgress = db(db.user_chapter_progress.id>0).select(db.user_chapter_progress.ALL)
+
         cohortName = db(db.cohort_master.id == auth.user.cohort_id).select(db.cohort_master.cohort_name)
-        return dict(allPlans = allPlans, allProgress = allProgress, allUsers = allUsers, allComments = allComments, allUserProgress = allUserProgress, cohortName = cohortName)
+        return dict(allPlans=allPlans, allProgress=allProgress, allUsers=allUsers,
+                    allComments=allComments, cohortName=cohortName)
+
 
 def newschedule():
     if auth.user == None:
@@ -89,16 +107,7 @@ def initiateGroup():
     if auth.user == None:
         redirect(URL('default', 'user/login'))
     else:
-        allProgress = db((db.user_sub_chapter_progress.chapter_id==db.chapters.chapter_label)
-                         &(db.user_sub_chapter_progress.user_id==db.auth_user.id)).select(db.user_sub_chapter_progress.ALL, db.chapters.ALL, db.auth_user.ALL)
-        allUsers = db(db.auth_user.cohort_id==auth.user.cohort_id).select(db.auth_user.ALL)
-        allComments = db(db.user_comments.cohort_id==auth.user.cohort_id).select(orderby=~db.user_comments.id|db.user_comments.ALL)
-        allPlans = db((db.cohort_plan.chapter_id==db.chapters.id) & (db.cohort_plan.cohort_id==auth.user.cohort_id)).select(db.chapters.id, db.chapters.chapter_name, db.cohort_plan.status , db.cohort_plan.start_date , db.cohort_plan.end_date, db.cohort_plan.actual_end_date, db.cohort_plan.note, db.cohort_plan.created_by, db.cohort_plan.cohort_id, db.cohort_plan.id)
-        for plan in allPlans:
-            if plan.cohort_plan.status=='new' and plan.cohort_plan.start_date<datetime.datetime.now():
-                plan.cohort_plan.status='active'
-                db((db.cohort_plan.chapter_id==plan.chapters.id) & (db.cohort_plan.cohort_id==auth.user.cohort_id)).update(status='active')
-        return dict(allPlans = allPlans, allProgress = allProgress, allUsers = allUsers, allComments = allComments, requestArgs = request.args(0))
+        return dict(requestArgs=request.args(0))
 
 def manageGroup():
     if auth.user == None:
@@ -110,8 +119,10 @@ def manageGroup():
         return dict(currentGroup=currentGroup[0], allGroupMembers=allGroupMembers)
 
 def createNewGroup():
+    if auth.user == None:
+        redirect(URL('default', 'user/login'))
     invitationId = "".join([random.choice(string.ascii_letters + string.digits) for n in xrange(5)])
-    newGroupId = db.cohort_master.insert(cohort_name = request.vars.groupName, created_on=datetime.datetime.now(), is_active=1, invitation_id=invitationId)
+    newGroupId = db.cohort_master.insert(cohort_name = request.vars.groupName, created_on=datetime.datetime.now(), is_active=1, invitation_id=invitationId, course_name=auth.user.course_name)
     db.executesql("INSERT INTO cohort_plan(cohort_id, chapter_id, status) SELECT "+str(newGroupId)+", id, 'notStarted' FROM chapters WHERE course_id = '"+auth.user.course_name+"';")    
     auth.user.cohort_id = newGroupId
     joinGroupParameterized(invitationId)
