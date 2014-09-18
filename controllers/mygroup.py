@@ -15,6 +15,8 @@ def schedule():
             redirect(URL('mygroup','manageGroup'))
         dbfile.write('%s : user = %s cohort_id = %d\n' % (datetime.datetime.now(), auth.user.username, auth.user.cohort_id))
         allProgress = db((db.user_sub_chapter_progress.chapter_id == db.chapters.chapter_label) &
+                         (db.auth_user.course_name == auth.user.course_name) &
+                         (db.chapters.course_id == auth.user.course_name) &
                          (db.user_sub_chapter_progress.user_id == db.auth_user.id) &
                          (db.auth_user.cohort_id == auth.user.cohort_id)).select(db.user_sub_chapter_progress.ALL,
                                                                                 db.chapters.ALL,
@@ -117,16 +119,23 @@ def initiateGroup():
     #if pprint.pprint(auth.user)
     if auth.user == None:
         redirect(URL('default', 'user/login'))
+    elif db(db.chapters.course_id == auth.user.course_name).count() < 1:
+        session.flash = 'Your course does not appear to support Study Groups'
+        redirect(URL('default', 'user/login'))
     else:
         return dict(requestArgs=request.args(0))
 
 def manageGroup():
     if auth.user == None:
         redirect(URL('default', 'user/login'))
+    elif not auth.user.cohort_id:
+        session.flash = 'You do not appear to belong to a study group yet'
+        redirect(URL('mygroup', 'initiateGroup'))
     else:
-        cohortIdResult = db(db.auth_user.id==auth.user.id).select(db.auth_user.cohort_id) 
-        currentGroup = db(db.cohort_master.id==cohortIdResult[0].cohort_id).select(db.cohort_master.id, db.cohort_master.cohort_name, db.cohort_master.invitation_id, db.cohort_master.is_active)
-        allGroupMembers = db(db.auth_user.cohort_id==currentGroup[0].id).select(db.auth_user.first_name, db.auth_user.last_name)
+        currentGroup = db(db.cohort_master.id == auth.user.cohort_id).select(db.cohort_master.id, db.cohort_master.cohort_name,
+                                                                     db.cohort_master.invitation_id,
+                                                                     db.cohort_master.is_active)
+        allGroupMembers = db(db.auth_user.cohort_id == auth.user.cohort_id).select(db.auth_user.first_name, db.auth_user.last_name)
         return dict(currentGroup=currentGroup[0], allGroupMembers=allGroupMembers)
 
 def createNewGroup():

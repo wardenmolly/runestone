@@ -104,10 +104,14 @@ def saveprog():
         idx = id.rfind('-') - 1
         return id[:idx]
     
-    section_users = db((db.sections.id==db.section_users.section) & (db.auth_user.id==db.section_users.auth_user))
+    section_users = db((db.sections.id == db.section_users.section) & (db.auth_user.id == db.section_users.auth_user))
     section = section_users(db.auth_user.id == user.id).select(db.sections.ALL).last()
     # get the assignment object associated with acid, *and the current course*
-    assignment = db(db.assignments.id == db.problems.assignment)(db.problems.acid == acid)(db.assignments.course==section.course_id).select(db.assignments.ALL).first()
+    assignment = None
+    if section:
+        assignment = db((db.assignments.id == db.problems.assignment) &
+                        (db.problems.acid == acid) &
+                        (db.assignments.course==section.course_id)).select(db.assignments.ALL).first()
     if assignment:
         q = db(db.deadlines.assignment == assignment.id)
         if section:
@@ -122,7 +126,8 @@ def saveprog():
         db.code.insert(sid=auth.user.username,
             acid=acid,code=code,
             timestamp=datetime.datetime.now(),
-            course_id=auth.user.course_id)
+            course_id=auth.user.course_id,
+            language=request.vars.lang)
     except Exception as e:
         if not auth.user:
             return json.dumps(["ERROR: auth.user is not defined.  Copy your code to the clipboard and reload or logout/login"])
@@ -351,7 +356,9 @@ def getlastpage():
     if auth.user:
         result = db((db.user_state.user_id == auth.user.id) &
                     (db.user_state.course_id == course) &
+                    (db.user_state.course_id == db.chapters.course_id) &
                     (db.user_state.last_page_chapter == db.chapters.chapter_label) &
+                    (db.sub_chapters.chapter_id == db.chapters.id) &
                     (db.user_state.last_page_subchapter == db.sub_chapters.sub_chapter_label)
                     ).select(db.user_state.last_page_url, db.user_state.last_page_hash,
                              db.chapters.chapter_name,
@@ -647,18 +654,20 @@ def getCodeDiffs():
         sid = auth.user.username
     else:
         sid = request.vars['sid']
-    divid = request.vars['divid']
-    q = '''select timestamp, sid, div_id, code, emessage, id
-           from acerror_log 
-           where sid = '%s' and course_id = '%s' and div_id='%s'
-           order by timestamp
-    ''' % (sid, auth.user.course_name, divid)
 
-    rows = db.executesql(q)
+    divid = request.vars['divid']
+    rows = []
+    if sid and divid and auth.user:
+        q = '''select timestamp, sid, div_id, code, emessage, id
+               from acerror_log
+               where sid = '%s' and course_id = '%s' and div_id='%s'
+               order by timestamp
+        ''' % (sid, auth.user.course_name, divid)
+        rows = db.executesql(q)
     if len(rows) < 1:
         return json.dumps(dict(timestamps=[0], code=[''],
                                diffs=[''],
-                               mess=['No Coaching hints yet.  You need to run the example at least once.'],
+                               mess=['No Coaching hints yet.  You need to run the example at least once and be logged in and registered for a course'],
                                chints=['']))
 
     differ = diff_match_patch()

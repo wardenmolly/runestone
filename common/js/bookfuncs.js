@@ -126,7 +126,7 @@ function builtinRead(x) {
     return Sk.builtinFiles["files"][x];
 }
 
-function createActiveCode(divid,suppliedSource,sid) {
+function createActiveCode(divid,suppliedSource,sid,language) {
     var edNode;
     var acblockid;
     if (sid !== undefined) {
@@ -137,6 +137,9 @@ function createActiveCode(divid,suppliedSource,sid) {
 
     edNode = document.getElementById(acblockid);
     edNode.lang = edNode.lang || 'python'
+    if (language !== undefined && language !== "None") {
+        edNode.lang = language;
+    }
     if (edNode.children.length == 0 ) {
         //edNode.style.display = 'none';
         edNode.style.backgroundColor = "white";
@@ -302,9 +305,10 @@ function runit(myDiv, theButton, includes, suffix) {
             eval(prog);
         } else {
             // html
-            $('#'+myDiv+'_iframe').remove()
-            $('#'+myDiv).append('<iframe class="activehtml" id="' + myDiv + '_iframe" srcdoc="'
-                + prog + '">' + '</iframe>');
+            $('#'+myDiv+'_iframe').remove();
+            $('#'+myDiv+'_htmlout').show();
+            $('#'+myDiv+'_htmlout').append('<iframe class="activehtml" id="' + myDiv + '_iframe" srcdoc="' +
+                prog.replace(/"/g,"'") + '">' + '</iframe>');
         }
         logRunEvent({'div_id': myDiv, 'code': prog, 'errinfo': 'success'}); // Log the run event
     } catch (e) {
@@ -430,6 +434,7 @@ function saveEditor(divName) {
     // get editor from div name
     var editor = cm_editors[divName + "_code"];
     var data = {acid: divName, code: editor.getValue()};
+    data.lang = $('#'+divName).attr('lang');
     $(document).ajaxError(function (e, jqhxr, settings, exception) {
         alert("Request Failed for" + settings.url)
     });
@@ -491,6 +496,8 @@ function disableAcOpt() {
             $jqTheme(value).attr('title', 'Register or log in to save your code');
         } else if ($jqTheme(value).text() == 'Load') {
             $jqTheme(value).attr('title', 'Register or log in to load your saved code');
+        } else if ($jqTheme(value).text() == 'Code Coach') {
+            $jqTheme(value).attr('title', 'Register or log in to use Code Coach');
         }
         $jqTheme(value).tooltip({
                                     'selector': '',
