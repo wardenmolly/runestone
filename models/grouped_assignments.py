@@ -29,64 +29,92 @@ class AssignmentGrade(object):
             else:
                 return 0
         else:
-            return 0    
+            return 0
+        
+    def csv(self, row, type_name, assignment_names):
+        # add values to row dictionary and field names to lists as needed
+        name = type_name + '_' + self.assignment_name
+        if name not in assignment_names:
+            assignment_names.append(name)
+        row[name] = self.points()   
         
 
 class AssignmentTypeGrade(object):
     """Grade of one user for a collection of assignments,"""
-    def __init__(self):
+    def __init__(self, assignment_type, user=None, course=None):
         self.assignments = []
+        self.name = assignment_type.name
+        self.grade_type = assignment_type.grade_type
+        
+        try:
+            self.weight = assignment_type.weight
+        except:
+            self.weight = 0
+        try:
+            self.possible = assignment_type.points_possible
+        except:
+            self.possible = 0
+        try:
+            self.assignments_count = int(assignment_type.assignments_count)
+        except:
+            self.assignments_count = 0
+        try:
+            self.assignments_dropped = int(assignment_type.assignments_dropped)
+        except:
+            self.assignments_dropped = 0 
+    
+        assignments = db((db.assignments.course == course.id)
+                         & (db.assignments.assignment_type == assignment_type.id)                      
+                         ).select(orderby = db.assignments.name)
+        
+        for row in assignments:
+            # get or create the grade object for this user for this assignment row
+            grade = db.grades((db.grades.assignment == row.id) & (db.grades.auth_user == user.id))
+            if not grade:
+                db.grades.insert(auth_user = user.id,
+                                 assignment = row.id,
+                                 score = 0,
+                                 projected = 0)
+            grade = db.grades((db.grades.assignment == row.id) & (db.grades.auth_user == user.id))
+            # add the AssignmentGrade to t
+            self.assignments.append(AssignmentGrade(row.released, grade.score, grade.projected, row.points, row.id, row.name, grade, row))            
     
     def points(self, projected = False, potential = False):
         vals = [a.points(projected, potential) for a in self.assignments]
         vals.sort()
         # drop the self.assignments_dropped lowest values
         return sum(vals[self.assignments_dropped:])
+    
+    def csv(self, row, type_names, assignment_names):
+        # add values to row dictionary and field names to lists as needed
+        if self.name not in type_names:
+            type_names.append(self.name)
+        row[self.name] = self.points()
+        for a in self.assignments:
+            a.csv(row, self.name, assignment_names)
 
 class CourseGrade(object):
-    def __init__(self):
-        self.assignment_type_grades = []
+    def __init__(self, user, course, assignment_types):
+        self.assignment_type_grades = [AssignmentTypeGrade(t, user, course) for t in assignment_types]
+        self.student = user
+        self.course = course
+
         
     def points(self, projected = False, potential = False):
         return sum([t.points(projected, potential) for t in self.assignment_type_grades])
-
-def student_grade_for_assignment_type(user=None, course=None, assignment_type=None):
-    t = AssignmentTypeGrade()
-    if not user or not course or not assignment_type:
-        return t
-
-    # Check assignment type weight before setting it in case its None
-    if assignment_type.weight != None:
-        t.weight = assignment_type.weight
-    if assignment_type.points_possible != None:
-        t.possible = assignment_type.points_possible
-    if assignment_type.assignments_count:
-        t.assignments_count = int(assignment_type.assignments_count)
-    if assignment_type.assignments_dropped:
-        t.assignments_dropped = int(assignment_type.assignments_dropped) 
-    t.name = assignment_type.name
-    t.grade_type = assignment_type.grade_type
-
-    assignments = db((db.assignments.course == course.id)
-                     & (db.assignments.assignment_type == assignment_type.id)                      
-                     ).select(orderby = db.assignments.name)
     
-    for row in assignments:
-        # get or create the grade object for this user for this assignment row
-        grade = db.grades((db.grades.assignment == row.id) & (db.grades.auth_user == user.id))
-        if not grade:
-            db.grades.insert(auth_user = user.id,
-                             assignment = row.id,
-                             score = 0,
-                             projected = 0)
-        grade = db.grades((db.grades.assignment == row.id) & (db.grades.auth_user == user.id))
-        # add the AssignmentGrade to t
-        try:
-            t.assignments.append(AssignmentGrade(row.released, grade.score, grade.projected, row.points, row.id, row.name, grade, row))
-        except:
-            print "failed to append new grade", grade
-        
-    return t
+    def csv(self, type_names, assignment_names):
+        # pass the row dictionary and fields_names into the csv method for the components, which will accumulate extra values and field names
+        row = {}
+        row['Lastname']= self.student.last_name
+        row['Firstname']= self.student.first_name
+        row['Email']= self.student.email
+        row['Total']= self.points()
+        for t in self.assignment_type_grades:
+            t.csv(row, type_names, assignment_names)
+        return row
+
+
 
 db.define_table('assignment_types',
     Field('name', 'string'),
@@ -158,7 +186,7 @@ def assignment_get_engagement_time(assignment, user, preclass):
         dl = get_deadline(assignment, user)
         if dl:
             q = q(db.useinfo.timestamp < dl)       
-    activities = q.select(db.useinfo.timestamp)
+    activities = q.select(db.useinfo.timestamp, orderby=db.useinfo.timestamp)
     sessions = []
     THRESH = 300
     prev = None
@@ -273,13 +301,12 @@ def get_all_times_and_activity_counts(course):
                 ret[nm+"_max_act"] = act_per_ass[a]
             return ret
             
-                
-    students = db(db.auth_user.course_id == course.id).select(db.auth_user.registration_id)
+    students = db(db.auth_user.course_id == course.id).select(db.auth_user.registration_id, db.auth_user.username)
     all_user_data = {}
     for student in students:
-        curr_user = User_data(student.registration_id)        
+        curr_user = User_data(student.registration_id)
         ## get all use scores and times for this user
-        rows = db(db.useinfo.sid == student.registration_id).select(orderby=db.useinfo.timestamp)
+        rows = db(db.useinfo.sid == student.username).select(orderby=db.useinfo.timestamp)
         curr_session = None
         prev_row = None
         THRESH = 600
