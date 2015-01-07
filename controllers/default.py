@@ -159,5 +159,18 @@ def bio():
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
 def bios():
     # go to /default/bios and then click on TSV (not CSV) to export properly with First and Last names showing instead of id
-    bios = SQLFORM.grid(db.user_biography)
+    # get only the people in the course you are instructor for
+    q = (db.user_biography.user_id == db.auth_user.id) & (db.auth_user.course_id == auth.user.course_id)
+    fields = [db.user_biography.image,
+              db.user_biography.prefered_name,
+              db.user_biography.user_id,
+              db.user_biography.interesting_fact,
+              db.user_biography.programming_experience]
+    # headers that make it easy to import into Flashcards Deluxe
+    headers = {'user_biography.image': 'Picture 1',
+              'user_biography.prefered_name': 'Text 2',
+              'user_biography.user_id': 'Text 3',
+              'user_biography.interesting_fact' : 'Text 4',
+              'user_biography.programming_experience' : 'Text 5'}
+    bios = SQLFORM.grid(q, fields=fields, headers = headers)
     return dict(bios=bios)
