@@ -350,10 +350,12 @@ def detail():
     max_score = max(problem_points)
     if len(problem_points) > 0:
         median_score = get_median(problem_points)
-        real_score_count = len(problem_points)
+        #real_score_count = len(problem_points) # not being used right now
     else:
         median_score = 0
-        real_score_count = 0
+        #real_score_count = 0 # not being used right now
+    # get number of problems with any code saved
+    num_problems_with_code = len([p.code for p in problems if p is not None])
 
 
     # Used as a convinence function for navigating within the page template
@@ -381,7 +383,7 @@ def detail():
         avg_score = mean_score,
         min_score = min_score,
         max_score = max_score,
-        real_score_count = real_score_count,
+        real_score_count = num_problems_with_code,
         median_score = median_score,
         gradingUrl = URL('assignments', 'problem'),
         massGradingURL = URL('assignments', 'mass_grade_problem'),
