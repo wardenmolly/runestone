@@ -345,12 +345,14 @@ def detail():
     except:
         mean_score = 0
     # get min, max, median, count
-    min_score = min(problem_points)
-    max_score = max(problem_points)
     if len(problem_points) > 0:
+        min_score = min(problem_points)
+        max_score = max(problem_points)
         median_score = get_median(problem_points)
         real_score_count = len(problem_points)
     else:
+        min_score = 0
+        max_score = 0
         median_score = 0
         real_score_count = 0
 
