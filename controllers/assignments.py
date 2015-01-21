@@ -310,7 +310,7 @@ def detail():
         pass
 
     students = students.select(db.auth_user.ALL)
-    problems = db(db.problems.assignment == assignment.id).select(db.problems.ALL)
+    problems = db(db.problems.assignment == assignment.id).select(db.f.ALL)
 
     # getting scores
     student = None
@@ -346,16 +346,17 @@ def detail():
     except:
         mean_score = 0
     # get min, max, median, count
-    min_score = min(problem_points)
-    max_score = max(problem_points)
     if len(problem_points) > 0:
         median_score = float("%0.02f" % get_median(problem_points))
+        min_score = min(problem_points)
+        max_score = max(problem_points)
         #real_score_count = len(problem_points) # not being used right now
     else:
         median_score = 0
+        min_score,max_score = 0,0
         #real_score_count = 0 # not being used right now
     # get number of problems with any code saved
-    num_problems_with_code = len([p.code for p in problems if p is not None])
+    num_problems_with_code = len([p.code for p in problems if p.code is not None])
 
 
     # Used as a convinence function for navigating within the page template
