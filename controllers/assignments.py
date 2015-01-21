@@ -342,14 +342,14 @@ def detail():
     problem_points = [s.points for s in scores if s.points > 0]
     score_sum = float(sum(problem_points))
     try:
-        mean_score = score_sum/len(problem_points)
+        mean_score = float("%.02f" % score_sum/len(problem_points))
     except:
         mean_score = 0
     # get min, max, median, count
     min_score = min(problem_points)
     max_score = max(problem_points)
     if len(problem_points) > 0:
-        median_score = get_median(problem_points)
+        median_score = float("%0.02f" % get_median(problem_points))
         #real_score_count = len(problem_points) # not being used right now
     else:
         median_score = 0
