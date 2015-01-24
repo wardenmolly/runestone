@@ -57,7 +57,7 @@ function getGradingModal(element, acid, studentId){
 		jQuery('#input-grade',modal).val(data.grade);
 		jQuery('#input-comments',modal).val(data.comment);
 
-		createActiveCode(data.acid,null,data.username);
+		createActiveCode(data.acid,data.code,data.username);
 		jQuery('form',modal).submit(save);
 		jQuery('.next',modal).click(function(event){
 			event.preventDefault();
@@ -69,6 +69,15 @@ function getGradingModal(element, acid, studentId){
 
 			modal.modal('hide');
 		});
+		
+		// make the text show up once it is loaded
+		modal.on('shown.bs.modal show.bs.modal', function() {
+         modal.find('.CodeMirror').each(function(i, e) {
+            e.CodeMirror.refresh();
+            e.CodeMirror.focus();
+          });
+      });
+
 		modal.modal('show');
 		jQuery('#'+data.id).focus();
 	}
