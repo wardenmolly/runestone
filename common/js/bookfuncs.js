@@ -183,119 +183,64 @@ function builtinRead(x) {
     return Sk.builtinFiles["files"][x];
 }
 
-function createActiveCode(divid,suppliedSource,sid,language) {
-    var edNode;
-    var acblockid;
-    if (sid !== undefined) {
-        acblockid = divid + "_" + sid;
-    } else {
-        acblockid = divid;
-    }
+// This is only used for assignment grading
+function createActiveCode(divid, suppliedSource, sid, language) {
+   var edNode;
+   var acblockid;
+   if (sid !== undefined) {
+      acblockid = divid + "_" + sid;
+   } else {
+      acblockid = divid;
+   }
 
-    edNode = document.getElementById(acblockid);
-    edNode.lang = edNode.lang || 'python'
-    if (language !== undefined && language !== "None") {
-        edNode.lang = language;
-    }
-    if (edNode.children.length == 0 ) {
-        //edNode.style.display = 'none';
-        edNode.style.backgroundColor = "white";
-        var editor;
-        editor = CodeMirror(edNode, {
-                    mode: {name: "python",
-                        version: 2,
-                        singleLineStringErrors: false},
-                    lineNumbers: true,
-                    indentUnit: 4,
-                    tabMode: "indent",
-                    matchBrackets: true,
-                    autoMatchParens: true,
-                    extraKeys: keymap
-                });
+   edNode = document.getElementById(acblockid);
+   edNode.lang = edNode.lang || 'python'
+   if (language !== undefined && language !== "None") {
+      edNode.lang = language;
+   }
+   if (edNode.children.length == 0) {
+      //edNode.style.display = 'none';
+      edNode.style.backgroundColor = "white";
+      var editor;
+      editor = CodeMirror(edNode, {
+         mode : {
+            name : "python",
+            version : 2,
+            singleLineStringErrors : false
+         },
+         lineNumbers : true,
+         indentUnit : 4,
+         tabMode : "indent",
+         matchBrackets : true,
+         autoMatchParens : true,
+         extraKeys : keymap
+      });
 
-        editor.setSize(null,250);
+      editor.setSize(null, 250);
+      editor.setValue(suppliedSource);
 
+      var myRun = function() {
+         runit(acblockid);
+      };
+      cm_editors[acblockid + "_code"] = editor;
 
-        var myRun = function() {
-            runit(acblockid);
-        };
-        var mySave = function() {
-            saveEditor(divid);
-        };
-        var myLoad = function() {
-            requestCode(divid,sid);
-        };
-        cm_editors[acblockid+"_code"] = editor;
-        editor.parentDiv = acblockid;
-        var runButton = document.createElement("button");
-        runButton.appendChild(document.createTextNode('Run'));
-        runButton.className = runButton.className + ' btn btn-success';
-        runButton.onclick = myRun;
-        edNode.appendChild(runButton);
-        edNode.appendChild(document.createElement('br'));
-        if (sid === undefined) { // We don't need load and save buttons for grading
-            if(isLoggedIn() == true) {
-                var saveButton = document.createElement("input");
-                saveButton.setAttribute('type','button');
-                saveButton.setAttribute('value','Save');
-                saveButton.className = saveButton.className + ' btn btn-default';
-                saveButton.onclick = mySave;
-                edNode.appendChild(saveButton);
+      editor.parentDiv = acblockid;
+      var runButton = document.createElement("button");
+      runButton.appendChild(document.createTextNode('Run'));
+      runButton.className = runButton.className + ' btn btn-success';
+      runButton.onclick = myRun;
+      edNode.appendChild(runButton);
+      edNode.appendChild(document.createElement('br'));
 
-                var loadButton = document.createElement("input");
-                loadButton.setAttribute('type','button');
-                loadButton.setAttribute('value','Load');
-                loadButton.className = loadButton.className + ' btn btn-default';
-                loadButton.onclick = myLoad;
-                edNode.appendChild(loadButton);
-            } else {
-                var saveButton = document.createElement("input");
-                saveButton.setAttribute('type','button');
-                saveButton.setAttribute('value','Save');
-                saveButton.className = saveButton.className + ' btn btn-default disabled';
-                saveButton.setAttribute('data-toggle','tooltip');
-                saveButton.setAttribute('title','Register or log in to save your code');
-                edNode.appendChild(saveButton);
-                $jqTheme(saveButton).tooltip( {
-                    'selector': '',
-                    'placement': 'bottom'
-                });
-
-                var loadButton = document.createElement("input");
-                loadButton.setAttribute('type','button');
-                loadButton.setAttribute('value','Load');
-                loadButton.className = loadButton.className + ' btn btn-default disabled';
-                loadButton.setAttribute('data-toggle','tooltip');
-                loadButton.setAttribute('title','Register or log in to load your saved code');
-                edNode.appendChild(loadButton);
-                $jqTheme(loadButton).tooltip( {
-                    'selector': '',
-                    'placement': 'bottom'
-                });
-            }
-        }
-        edNode.appendChild(document.createElement('br'));
-        var newCanvas = edNode.appendChild(document.createElement("canvas"));
-        newCanvas.id = acblockid+"_canvas";
-        newCanvas.height = 400;
-        newCanvas.width = 400;
-        newCanvas.style.border = '2px solid black';
-        newCanvas.style.display = 'none';
-        var newPre = edNode.appendChild(document.createElement("pre"));
-        newPre.id = acblockid + "_pre";
-        newPre.className = "active_out";
-
-        myLoad();
-        if (! suppliedSource ) {
-            suppliedSource = '\n\n\n\n\n';
-        }
-        if (! editor.getValue()) {
-            suppliedSource = suppliedSource.replace(new RegExp('%22','g'),'"');
-            suppliedSource = suppliedSource.replace(new RegExp('%27','g'),"'");
-            editor.setValue(suppliedSource);
-        }
-        editor.refresh()
-    }
+      var newCanvas = edNode.appendChild(document.createElement("canvas"));
+      newCanvas.id = acblockid + "_canvas";
+      newCanvas.height = 400;
+      newCanvas.width = 600;
+      newCanvas.style.border = '2px solid black';
+      newCanvas.style.display = 'none';
+      var newPre = edNode.appendChild(document.createElement("pre"));
+      newPre.id = acblockid + "_pre";
+      newPre.className = "active_out";
 }
 
 function runit(myDiv, theButton, includes, suffix) {
@@ -516,32 +461,34 @@ function requestCode(divName, sid) {
 }
 
 function loadEditor(data, status, whatever) {
-    // function called when contents of database are returned successfully
-    var res = eval(data)[0];
-    var editor;
-    if (res.sid) {
-        editor = cm_editors[res.acid + "_" + res.sid + "_code"];
-    } else {
-        editor = cm_editors[res.acid + "_code"];
-    }
+   // function called when contents of database are returned successfully
+   var result = eval(data)[0];
+   var editor;
+   if (result.sid) {
+      editor = cm_editors[result.acid + "_" + result.sid + "_code"];
+   } else {
+      editor = cm_editors[result.acid + "_code"];
+   }
 
-    var loadbtn = $("#"+res.acid+"_loadb");
-    if (res.source) {
-        editor.setValue(res.source);
-        loadbtn.tooltip({'placement': 'bottom',
-                         'title': "Loaded your saved code.",
-                         'trigger': 'manual'
-                        });
-    } else {
-        loadbtn.tooltip({'placement': 'bottom',
-                         'title': "No saved code.",
-                         'trigger': 'manual'
-                        });
-    }
-    loadbtn.tooltip('show');
-    setTimeout(function () {
-        loadbtn.tooltip('destroy')
-    }, 4000);
+   var loadbtn = $("#" + result.acid + "_loadb");
+   if (result.source) {
+      editor.setValue(result.source);
+      loadbtn.tooltip({
+         'placement' : 'bottom',
+         'title' : "Loaded your saved code.",
+         'trigger' : 'manual'
+      });
+   } else {
+      loadbtn.tooltip({
+         'placement' : 'bottom',
+         'title' : "No saved code.",
+         'trigger' : 'manual'
+      });
+   }
+   loadbtn.tooltip('show');
+   setTimeout(function() {
+      loadbtn.tooltip('destroy')
+   }, 4000);
 }
 
 function disableAcOpt() {
