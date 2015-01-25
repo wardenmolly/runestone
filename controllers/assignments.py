@@ -357,7 +357,8 @@ def detail():
         min_score,max_score = 0,0
         #real_score_count = 0 # not being used right now
     # get number of problems with any code saved
-    num_problems_with_code = len([p.code for p in problems if p.code is not None])
+    # num_problems_with_code = len([p.code for p in problems if p.code is not None])
+    num_problems_with_code = 0
 
 
     # Used as a convinence function for navigating within the page template
