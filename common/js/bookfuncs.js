@@ -241,6 +241,7 @@ function createActiveCode(divid, suppliedSource, sid, language) {
       var newPre = edNode.appendChild(document.createElement("pre"));
       newPre.id = acblockid + "_pre";
       newPre.className = "active_out";
+   }
 }
 
 function runit(myDiv, theButton, includes, suffix) {
