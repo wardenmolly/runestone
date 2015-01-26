@@ -217,6 +217,9 @@ function createActiveCode(divid, suppliedSource, sid, language) {
       });
 
       editor.setSize(null, 250);
+      if (! suppliedSource ) {
+            suppliedSource = 'nothing submitted';
+      }
       editor.setValue(suppliedSource);
 
       var myRun = function() {
