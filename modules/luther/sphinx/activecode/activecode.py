@@ -22,6 +22,45 @@ from docutils.parsers.rst import Directive
 import json
 import os
 
+#########get setup to allow writing of source_code to the db
+import sys
+# when run cwd will be the applications/runestone/txtbookfolder
+sys.path.insert(0, os.path.join('..', '..', '..'))
+try:
+    from gluon.dal import DAL, Field
+except ImportError:
+    print "... WARNING ..."
+    print "Cannot Update Chapter and Subchapter Tables in Database"
+    print "Because I am unable to import DAL from web2py"
+    print "In order to update, this application should be installed"
+    print "in the applications folder of a web2py installation"
+    print "cwd is", os.getcwd()
+    exit()
+
+# hack to find basedir no matter where the paver build runs from
+#basedir is something ending in web2py/
+#runestonedir is basedir _ 'applications/runestone'
+cwd = os.getcwd()
+basedir = cwd[:cwd.index('web2py')+len('web2py')]
+modelspath = os.path.join(basedir, 'applications', 'runestone', 'models')
+dbpath = os.path.join(basedir, 'applications', 'runestone', 'databases')
+sys.path.insert(0, modelspath)
+_temp = __import__('0', globals(), locals())
+settings = _temp.settings
+
+execfile(os.path.join(modelspath, '1.py'), globals(), locals())
+db = DAL(settings.database_uri, folder=dbpath, auto_import=True)
+db.define_table('source_code',
+  Field('acid','string', required=True),
+  Field('includes', 'string'), # comma-separated string of acid main_codes to include when running this source_code
+  Field('available_files', 'string'), # comma-separated string of file_names to make available as divs when running this source_code
+  Field('main_code','text'),
+  Field('suffix_code', 'text'), # hidden suffix code
+  migrate='runestone_source_code.table'
+)
+
+####### end stuff for db connection to allow saving to source_code table
+
 # try:
 #     import conf
 #     version = conf.version
@@ -282,6 +321,7 @@ class ActiveCode(Directive):
         'autorun':directives.flag,
         'caption':directives.unchanged,
         'include':directives.unchanged,
+        'available_files':directives.unchanged,
         'hidecode':directives.flag,
         'language':directives.unchanged,
         'tour_1':directives.unchanged,
@@ -341,10 +381,17 @@ class ActiveCode(Directive):
 
         if 'include' not in self.options:
             self.options['include'] = 'undefined'
+            included_divs = ""
         else:
+            included_divs = self.options['include']
             lst = self.options['include'].split(',')
             lst = [x.strip() for x in lst]
             self.options['include'] = lst
+
+        if 'available_files' not in self.options:
+            available_files = ""
+        else:
+            available_files = self.options['available_files']
 
         if 'hidecode' in self.options:
             self.options['hidecode'] = 'none'
@@ -358,6 +405,19 @@ class ActiveCode(Directive):
             self.options['codelens'] = False
         else:
             self.options['codelens'] = True
+
+        if not self.options['divid']:
+            raise Exeption("No divid in activecode.py")
+
+        # store the code for this acid in the db
+        db.source_code.update_or_insert(db.source_code.acid == self.options['divid'],
+                                        acid = self.options['divid'],
+                                        main_code= self.options['initialcode'],
+                                        suffix_code = self.options['suffix'],
+                                        includes = included_divs,
+                                        available_files = available_files)
+        db.commit()
+
 
         return [ActivcodeNode(self.options)]
 

@@ -20,6 +20,48 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
 
+#########get setup to allow writing of file contents to the source_code table 
+#########in db, so it can be made available in grading interface
+import sys
+import os
+# when run cwd will be the applications/runestone/txtbookfolder
+sys.path.insert(0, os.path.join('..', '..', '..'))
+try:
+    from gluon.dal import DAL, Field
+except ImportError:
+    print "... WARNING ..."
+    print "Cannot Update Chapter and Subchapter Tables in Database"
+    print "Because I am unable to import DAL from web2py"
+    print "In order to update, this application should be installed"
+    print "in the applications folder of a web2py installation"
+    print "cwd is", os.getcwd()
+    exit()
+
+# hack to find basedir no matter where the paver build runs from
+#basedir is something ending in web2py/
+#runestonedir is basedir _ 'applications/runestone'
+cwd = os.getcwd()
+basedir = cwd[:cwd.index('web2py')+len('web2py')]
+modelspath = os.path.join(basedir, 'applications', 'runestone', 'models')
+dbpath = os.path.join(basedir, 'applications', 'runestone', 'databases')
+sys.path.insert(0, modelspath)
+_temp = __import__('0', globals(), locals())
+settings = _temp.settings
+
+execfile(os.path.join(modelspath, '1.py'), globals(), locals())
+
+db = DAL(settings.database_uri, folder=dbpath, auto_import=True)
+db.define_table('source_code',
+  Field('acid','string', required=True),
+  Field('includes', 'string'), # comma-separated string of acid main_codes to include when running this source_code
+  Field('available_files', 'string'), # comma-separated string of file_names to make available as divs when running this source_code
+  Field('main_code','text'),
+  Field('suffix_code', 'text'), # hidden suffix code
+  migrate='runestone_source_code.table'
+)
+
+####### end stuff for db connection to allow saving to source_code table
+
 
 def setup(app):
     app.add_directive('datafile',DataFile)
@@ -122,6 +164,12 @@ class DataFile(Directive):
             
         if 'edit' not in self.options:
             self.options['edit'] = False
+
+        # store the contents of this div/file in the db
+        db.source_code.update_or_insert(db.source_code.acid == self.options['divid'],
+                                        acid = self.options['divid'],
+                                        main_code= source)
+        db.commit()
         
         return [DataFileNode(self.options)]
 
