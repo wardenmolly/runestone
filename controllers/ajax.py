@@ -74,7 +74,7 @@ def runlog():    # Log errors and runs with code
         event = 'activecode'
     dbid = db.acerror_log.insert(sid=sid,div_id=div_id,timestamp=ts,course_id=course,code=code,emessage=error_info)
     db.useinfo.insert(sid=sid,act=act,div_id=div_id,event=event,timestamp=ts,course_id=course)
-    lintAfterSave(dbid, code, div_id, sid)
+    #lintAfterSave(dbid, code, div_id, sid)
     response.headers['content-type'] = 'application/json'
     res = {'log':True}
     if setCookie:
