@@ -57,7 +57,7 @@ the object on which to apply the method immediately to the left of the dot. The 
 parentheses in the case of ``keys`` indicate that this method takes no parameters.
 
 The ``values`` and ``items`` methods are similar to ``keys``. They return view objects which can be turned
-into lists or iterated over directly.  Note that the items are shown as tuples containing the key and the associated value.
+into lists or iterated over directly.  (Note that the items are shown as tuples containing the key and the associated value.)
 
 .. activecode:: chp12_dict8
     
