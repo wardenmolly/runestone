@@ -24,6 +24,8 @@ get         key                 Returns the value associated with key; None othe
 get         key,alt             Returns the value associated with key; alt otherwise
 ==========  ==============      =======================================================
 
+The syntax for the keys , values, and items methods is .method() (.keys() , .values() , .items())
+
 The ``keys`` method returns what Python 3 calls a **view** of its underlying keys.  
 We can iterate over the view or turn the view into a 
 list by using the ``list`` conversion function.
